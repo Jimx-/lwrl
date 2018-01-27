@@ -1,6 +1,6 @@
 import os
 import json
-import pickle
+import torch
 
 class Saver:
     def __init__(self, save_dir, max_to_keep=5):
@@ -10,6 +10,8 @@ class Saver:
 
         self.last_checkpoints = []
         self.max_to_keep = max_to_keep
+
+        self._restore_meta()
 
     def _get_meta_path(self):
         return os.path.join(self.save_dir, 'checkpoint.json')
@@ -30,7 +32,7 @@ class Saver:
             self.last_checkpoints = meta_dict['last_checkpoints']
 
     def save(self, save_dict, global_steps):
-        ckpt_name = 'model-{}.pkl'.format(global_steps)
+        ckpt_name = 'model-{}.pth'.format(global_steps)
         self.last_checkpoints.append(ckpt_name)
 
         if len(self.last_checkpoints) > self.max_to_keep:
@@ -38,8 +40,7 @@ class Saver:
             os.remove(os.path.join(self.save_dir, del_ckpt))
 
         ckpt_path = os.path.join(self.save_dir, ckpt_name)
-        with open(ckpt_path, 'wb') as fout:
-            pickle.dump(save_dict, fout)
+        torch.save(save_dict, ckpt_path)
         self._save_meta()
 
     def restore(self):
@@ -50,5 +51,4 @@ class Saver:
 
         ckpt_name = self.last_checkpoints[-1]
         ckpt_path = os.path.join(self.save_dir, ckpt_name)
-        with open(ckpt_path, 'rb') as fin:
-            return pickle.load(fin)
+        return torch.load(ckpt_path)

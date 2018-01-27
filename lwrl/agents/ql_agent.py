@@ -4,11 +4,12 @@ import tqdm
 import numpy as np
 from tensorboard_logger import Logger
 
-from lwrl.models import DeepQNetwork, DuelingDQN
+from lwrl.models import DeepQNetwork
 from lwrl.memories import get_replay_memory
 import lwrl.utils.th_helper as H
 from lwrl.utils.history import History
 from lwrl.utils.saver import Saver
+
 
 class BaseQLearningAgent:
     def __init__(self, network_cls, env, test_env, exploration_schedule, config, save_dir=None, save_freq=100000,
@@ -52,7 +53,6 @@ class BaseQLearningAgent:
 
         self.test_freq = test_freq
 
-
     def act(self, obs, random_action=True):
         # fill in history on the beginning of an episode
         if self.history.empty():
@@ -67,8 +67,8 @@ class BaseQLearningAgent:
             return self.env.action_space.sample()
         else:
             obs = torch.from_numpy(self.history.get()).type(H.float_tensor).unsqueeze(0) / 255.0
-            return self.q_network(H.Variable(obs, volatile=True)).data.max(1)[1].cpu()[0]
-
+            with torch.no_grad():
+                return self.q_network(H.Variable(obs)).data.max(1)[1].cpu()[0]
 
     def observe(self, obs, action, reward, done, learn, keep_memory):
         self.history.add(obs)
@@ -77,7 +77,8 @@ class BaseQLearningAgent:
             self.replay_memory.add(obs, action, reward, done)
 
         if learn:
-            obs_batch, action_batch, reward_batch, next_obs_batch, done_mask = self.replay_memory.sample(self.batch_size)
+            obs_batch, action_batch, reward_batch, next_obs_batch, done_mask = \
+                self.replay_memory.sample(self.batch_size)
             obs_batch = H.Variable(torch.from_numpy(obs_batch).type(H.float_tensor) / 255.0)
             next_obs_batch = H.Variable(torch.from_numpy(next_obs_batch).type(H.float_tensor) / 255.0)
             action_batch = H.Variable(torch.from_numpy(action_batch).long())
@@ -106,7 +107,6 @@ class BaseQLearningAgent:
             # target network <- online network
             if self.num_updates % self.update_target_freq == 0:
                 self.target_network.load_state_dict(self.q_network.state_dict())
-
 
     def train(self, logdir=None, render=False, verbose=True):
         max_timesteps = self.config['max_timesteps']
@@ -172,7 +172,6 @@ class BaseQLearningAgent:
             if self.saver is not None and t % self.save_freq == 0:
                 self.save(t)
 
-
     def test(self, num_episodes=10, render=False):
         scores = []
         for episode in range(num_episodes):
@@ -196,7 +195,6 @@ class BaseQLearningAgent:
 
         return sum(scores) / float(num_episodes)
 
-
     def save(self, global_step):
         self.saver.save({
             'global_step': global_step,
@@ -205,10 +203,18 @@ class BaseQLearningAgent:
             'optimizer': self.optimizer.state_dict(),
         }, global_step)
 
+    def restore(self):
+        checkpoint = self.saver.restore()
+        self.global_step = checkpoint['global_step']
+        self.q_network.load_state_dict(checkpoint['q_network'])
+        self.target_network.load_state_dict(checkpoint['target_network'])
+        self.optimizer.load_state_dict(checkpoint['optimizer'])
+
 
 class QLearningAgent(BaseQLearningAgent):
     def __init__(self, *args, **kwargs):
         super().__init__(DeepQNetwork, *args, **kwargs)
+
 
 class DuelingQLearningAgent(BaseQLearningAgent):
     def __init__(self, *args, **kwargs):

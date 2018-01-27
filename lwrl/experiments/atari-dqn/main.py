@@ -8,6 +8,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str, help='Path to the config file')
 parser.add_argument('--save_dir', type=str, help='Directory to save the trained model', default=None)
 parser.add_argument('--log_dir', type=str, help='Directory to save the training log', default=None)
+parser.add_argument('--is_train', type=bool, help='Whether to train or to test the model', default=False)
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -28,4 +29,9 @@ if __name__ == '__main__':
         agent_type = DuelingQLearningAgent
 
     agent = agent_type(env, test_env, exploration_schedule, config, save_dir=args.save_dir)
-    agent.train(logdir=args.log_dir)
+
+    if args.is_train:
+        agent.train(logdir=args.log_dir)
+    else:
+        agent.restore()
+        agent.test(render=True)
