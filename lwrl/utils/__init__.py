@@ -1,0 +1,1 @@
+from lwrl.utils.config_reader import read_config
