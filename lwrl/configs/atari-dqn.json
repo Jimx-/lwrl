@@ -1,52 +1,63 @@
 {
-  "max_timesteps": 50000000,
-  "history_length": 4,
-  "learning_starts": 50000,
-  "train_freq": 4,
-  "update_target_freq": 10000,
-  "batch_size": 32,
-  "discount_factor": 0.99,
-  "clip_error": 1.0,
+  "agent": {
+    "type": "dqn_agent",
 
-  "dueling": true,
-  "double_q_learning": true,
+    "state_spec": {
+      "low": 0,
+      "high": 255,
+      "shape": [84, 84]
+    },
+
+    "action_spec": {
+      "n": 4
+    },
+
+    "optimizer_spec": {
+      "type": "RMSprop",
+      "args": {
+        "lr": 0.00025,
+        "alpha": 0.95,
+        "eps": 0.01
+      }
+    },
+
+    "exploration_schedule": {
+      "type": "linear",
+      "args": {
+        "initial": 1.0,
+        "final": 0.1,
+        "steps": 1000000
+      }
+    },
+
+    "memory": {
+      "type": "sequential",
+      "args": {
+        "max_length": 1000000,
+        "history_length": 4
+      }
+    },
+
+    "max_timesteps": 50000000,
+    "history_length": 4,
+    "learning_starts": 50000,
+    "train_freq": 4,
+    "update_target_freq": 10000,
+    "batch_size": 32,
+    "discount_factor": 0.99,
+    "clip_error": 1.0,
+    "double_q_learning": true
+  },
 
   "environment": {
     "train": {
       "id": "BreakoutNoFrameskip-v4",
       "log_dir": "/tmp/atari-result"
     },
-
     "test": {
       "id": "BreakoutNoFrameskip-v4",
       "episodic_life": false,
       "clip_reward": false
-    }
-  },
-
-  "optimizer": {
-    "type": "RMSprop",
-    "args": {
-      "lr": 0.00025,
-      "alpha": 0.95,
-      "eps": 0.01
-    }
-  },
-
-  "exploration_schedule": {
-    "type": "linear",
-    "args": {
-      "initial": 1.0,
-      "final": 0.1,
-      "steps": 1000000
-    }
-  },
-
-  "memory": {
-    "type": "sequential",
-    "args": {
-      "max_length": 1000000,
-      "history_length": 4
     }
   }
 }

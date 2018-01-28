@@ -4,22 +4,52 @@ import tqdm
 import numpy as np
 from tensorboard_logger import Logger
 
-from lwrl.models import DeepQNetwork
+from lwrl.agents import LearningAgent
+from lwrl.models import DeepQNetwork, DuelingDQN
 from lwrl.memories import get_replay_memory
+from lwrl.utils import schedule
 import lwrl.utils.th_helper as H
 from lwrl.utils.history import History
 from lwrl.utils.saver import Saver
 
 
-class BaseQLearningAgent:
-    def __init__(self, network_cls, env, test_env, exploration_schedule, config, save_dir=None, save_freq=100000,
-                 test_freq=1000):
+class BaseQLearningAgent(LearningAgent):
+    def __init__(
+            self,
+            env,
+            test_env,
+            state_spec,
+            action_spec,
+            network_cls,
+            optimizer_spec,
+            memory,
+            exploration_schedule,
+            discount_factor,
+            clip_error,
+            update_target_freq,
+            history_length,
+            max_timesteps,
+            learning_starts,
+            train_freq,
+            batch_size,
+            double_q_learning=False,
+            save_dir=None,
+            save_freq=100000,
+            test_freq=1000
+    ):
+
+        super().__init__(
+            state_spec=state_spec,
+            action_spec=action_spec,
+            discount_factor=discount_factor,
+            optimizer_spec=optimizer_spec
+        )
+
         self.env = env
         self.test_env = test_env
-        self.exploration_schedule = exploration_schedule
-        self.config = config
-        self.history_length = config['history_length']
-        self.batch_size = config['batch_size']
+        self.exploration_schedule = schedule.get_schedule(exploration_schedule)
+        self.history_length = history_length
+        self.batch_size = batch_size
 
         if len(env.observation_space.shape) > 1:
             # raw image input
@@ -34,17 +64,18 @@ class BaseQLearningAgent:
         self.q_network = network_cls(in_channels, self.num_actions).type(H.float_tensor)
         self.target_network = network_cls(in_channels, self.num_actions).type(H.float_tensor)
 
-        optimizer_conf = config['optimizer']
-        self.optimizer = H.optimizer_dict[optimizer_conf['type']](self.q_network.parameters(), **optimizer_conf['args'])
-
-        self.replay_memory = get_replay_memory(config['memory'])
+        self.optimizer = self.optimizer_builder(self.q_network.parameters())
+        self.replay_memory = get_replay_memory(memory)
         self.history = History(self.history_length)
         self.global_step = 0
         self.num_updates = 0
 
-        self.discount_factor = config['discount_factor']
-        self.clip_error = config['clip_error']
-        self.update_target_freq = config['update_target_freq']
+        self.clip_error = clip_error
+        self.update_target_freq = update_target_freq
+
+        self.max_timesteps = max_timesteps
+        self.learning_starts = learning_starts
+        self.train_freq = train_freq
 
         self.save_freq = save_freq
         self.saver = None
@@ -109,11 +140,7 @@ class BaseQLearningAgent:
                 self.target_network.load_state_dict(self.q_network.state_dict())
 
     def train(self, logdir=None, render=False, verbose=True):
-        max_timesteps = self.config['max_timesteps']
-        learning_starts = self.config['learning_starts']
-        train_freq = self.config['train_freq']
-
-        pbar = range(max_timesteps)
+        pbar = range(self.max_timesteps)
         if verbose:
             pbar = tqdm.tqdm(pbar)
 
@@ -129,7 +156,7 @@ class BaseQLearningAgent:
                 self.env.render()
 
             # choose action
-            if t > learning_starts:
+            if t > self.learning_starts:
                 action = self.act(obs)
             else:
                 action = self.env.action_space.sample()
@@ -137,7 +164,7 @@ class BaseQLearningAgent:
             # take action in the environment
             obs, reward, done, _ = self.env.step(action)
             episode_reward += reward
-            learn = t > learning_starts and t % train_freq == 0 and self.replay_memory.size() > self.batch_size
+            learn = t > self.learning_starts and t % self.train_freq == 0 and self.replay_memory.size() > self.batch_size
             # observe the effect
             self.observe(obs, action, reward, done, learn=learn, keep_memory=True)
 
@@ -213,9 +240,9 @@ class BaseQLearningAgent:
 
 class QLearningAgent(BaseQLearningAgent):
     def __init__(self, *args, **kwargs):
-        super().__init__(DeepQNetwork, *args, **kwargs)
+        super().__init__(network_cls=DeepQNetwork, *args, **kwargs)
 
 
 class DuelingQLearningAgent(BaseQLearningAgent):
     def __init__(self, *args, **kwargs):
-        super().__init__(DeepQNetwork, *args, **kwargs)
+        super().__init__(network_cls=DuelingDQN, *args, **kwargs)
