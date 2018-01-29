@@ -18,4 +18,5 @@ class Variable(autograd.Variable):
 
 optimizer_dict = {
     'RMSprop': torch.optim.RMSprop,
+    'Adam': torch.optim.Adam
 }

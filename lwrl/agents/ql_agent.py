@@ -21,6 +21,7 @@ class BaseQLearningAgent(LearningAgent):
             state_spec,
             action_spec,
             network_cls,
+            network_spec,
             optimizer_spec,
             memory,
             exploration_schedule,
@@ -30,8 +31,8 @@ class BaseQLearningAgent(LearningAgent):
             history_length,
             max_timesteps,
             learning_starts,
-            train_freq,
-            batch_size,
+            train_freq=1,
+            batch_size=32,
             double_q_learning=False,
             save_dir=None,
             save_freq=100000,
@@ -51,18 +52,10 @@ class BaseQLearningAgent(LearningAgent):
         self.history_length = history_length
         self.batch_size = batch_size
 
-        if len(env.observation_space.shape) > 1:
-            # raw image input
-            frame_width, frame_height, frame_channel = env.observation_space.shape
-            in_channels = frame_channel * self.history_length
-        else:
-            # one-dimensional input
-            in_channels = env.observation_space.shape[0]
-
-        # set up online network and target network
+        # set up online networks and target networks
         self.num_actions = env.action_space.n
-        self.q_network = network_cls(in_channels, self.num_actions).type(H.float_tensor)
-        self.target_network = network_cls(in_channels, self.num_actions).type(H.float_tensor)
+        self.q_network = network_cls(network_spec, self.num_actions).type(H.float_tensor)
+        self.target_network = network_cls(network_spec, self.num_actions).type(H.float_tensor)
 
         self.optimizer = self.optimizer_builder(self.q_network.parameters())
         self.replay_memory = get_replay_memory(memory)
@@ -135,7 +128,7 @@ class BaseQLearningAgent(LearningAgent):
             self.optimizer.step()
             self.num_updates += 1
 
-            # target network <- online network
+            # target networks <- online networks
             if self.num_updates % self.update_target_freq == 0:
                 self.target_network.load_state_dict(self.q_network.state_dict())
 

@@ -1,6 +1,6 @@
 {
   "agent": {
-    "type": "dqn_agent",
+    "type": "duel_dqn_agent",
 
     "state_spec": {
       "low": 0,
@@ -11,6 +11,38 @@
     "action_spec": {
       "n": 4
     },
+
+    "network_spec": [
+      {
+        "type": "conv2d",
+        "in_channels": 4,
+        "out_channels": 32,
+        "kernel_size": 8,
+        "stride": 4,
+        "activation": "relu"
+      }, {
+        "type": "conv2d",
+        "in_channels": 32,
+        "out_channels": 64,
+        "kernel_size": 4,
+        "stride": 2,
+        "activation": "relu"
+      }, {
+        "type": "conv2d",
+        "in_channels": 64,
+        "out_channels": 64,
+        "kernel_size": 3,
+        "stride": 1,
+        "activation": "relu"
+      }, {
+        "type": "flatten"
+      }, {
+        "type": "dense",
+        "in_features": 3136,
+        "out_features": 512,
+        "activation": "relu"
+      }
+    ],
 
     "optimizer_spec": {
       "type": "RMSprop",
@@ -50,10 +82,13 @@
   },
 
   "environment": {
+    "type": "atari",
+
     "train": {
       "id": "BreakoutNoFrameskip-v4",
       "log_dir": "/tmp/atari-result"
     },
+
     "test": {
       "id": "BreakoutNoFrameskip-v4",
       "episodic_life": false,

@@ -1,7 +1,7 @@
 import argparse
 
 from lwrl.agents import agent_factory
-from lwrl.environments import get_atari_env
+from lwrl.environments import env_factory
 from lwrl.utils import read_config
 
 parser = argparse.ArgumentParser()
@@ -15,15 +15,15 @@ if __name__ == '__main__':
 
     config = read_config(args.config)
 
-    env = get_atari_env(**config['environment']['train'])
+    env = env_factory(type=config['environment']['type'], **config['environment']['train'])
 
     test_env_conf = config['environment'].get('test')
     if test_env_conf is None:
         test_env = env
     else:
-        test_env = get_atari_env(**test_env_conf)
+        test_env = env_factory(type=config['environment']['type'], **test_env_conf)
 
-    agent = agent_factory(**config["agent"], env=env, test_env=test_env, save_dir=args.save_dir)
+    agent = agent_factory(**config['agent'], env=env, test_env=test_env, save_dir=args.save_dir)
 
     if args.is_train:
         agent.train(logdir=args.log_dir)

@@ -1,1 +1,1 @@
-from lwrl.models.dqn import DeepQNetwork, DuelingDQN
+from lwrl.models.networks import DeepQNetwork, DuelingDQN

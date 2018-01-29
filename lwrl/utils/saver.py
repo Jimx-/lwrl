@@ -2,6 +2,7 @@ import os
 import json
 import torch
 
+
 class Saver:
     def __init__(self, save_dir, max_to_keep=5):
         self.save_dir = save_dir
@@ -26,6 +27,9 @@ class Saver:
 
     def _restore_meta(self):
         meta_file = self._get_meta_path()
+
+        if not os.path.exists(meta_file):
+            self._save_meta()
 
         with open(meta_file, 'r') as fin:
             meta_dict = json.load(fin)

@@ -1,27 +1,26 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
+from lwrl.models.networks import Network
+
+
 class DeepQNetwork(nn.Module):
-    def __init__(self, in_channels=4, num_actions=18):
+    def __init__(self, network_spec, num_actions=18):
         super().__init__()
-        self.conv1 = nn.Conv2d(in_channels, 32, kernel_size=8, stride=4)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2)
-        self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=1)
-        self.fc4 = nn.Linear(7 * 7 * 64, 512)
-        self._init_q_head(512, num_actions)
+        self.network = Network(network_spec)
+        out_features = self.network.output_size()[0]
+        self._init_q_head(out_features, num_actions)
 
     def _init_q_head(self, feature_dim, num_actions):
         self.fc5 = nn.Linear(feature_dim, num_actions)
 
     def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
-        x = F.relu(self.fc4(x.view(x.size(0), -1)))
+        x = self.network(x)
         return self._forward_q(x)
 
     def _forward_q(self, phi):
         return self.fc5(phi)
+
 
 class DuelingDQN(DeepQNetwork):
     def _init_q_head(self, feature_dim, num_actions):
@@ -31,4 +30,4 @@ class DuelingDQN(DeepQNetwork):
     def _forward_q(self, phi):
         value = self.fc_value(phi)
         advantage = self.fc_advantage(phi)
-        return value.expand_as(advantage) + (advantage - advantage.mean(1).expand_as(advantage))
+        return value.expand_as(advantage) + (advantage - advantage.mean(1, keepdim=True).expand_as(advantage))

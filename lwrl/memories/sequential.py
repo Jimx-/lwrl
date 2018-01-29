@@ -24,7 +24,7 @@ class SequentialMemory(Memory):
         if self.obs_buffer is None:
             self.action_buffer = np.empty(self.max_length, dtype=np.uint8)
             self.reward_buffer = np.empty(self.max_length, dtype=np.float32)
-            self.obs_buffer = np.empty((self.max_length, *obs.shape), dtype=np.uint8)
+            self.obs_buffer = np.empty((self.max_length, *obs.shape), dtype=obs.dtype)
             self.terminal_buffer = np.empty(self.max_length, dtype=bool)
             self.dim = obs.shape
 
@@ -46,8 +46,8 @@ class SequentialMemory(Memory):
     def sample(self, size):
         if self.prestates is None:
             state_shape = (size, self.history_length, *self.dim)
-            self.prestates = np.empty(state_shape, dtype=np.uint8)
-            self.poststates = np.empty(state_shape, dtype=np.uint8)
+            self.prestates = np.empty(state_shape, dtype=self.obs_buffer.dtype)
+            self.poststates = np.empty(state_shape, dtype=self.obs_buffer.dtype)
 
         indices = []
         i = 0
@@ -71,7 +71,10 @@ class SequentialMemory(Memory):
         rewards = self.reward_buffer[indices]
         dones = self.terminal_buffer[indices]
 
-        shape = (size, -1, self.dim[1], self.dim[2])
+        if len(self.dim) == 1:
+            shape = (size, self.dim[0])
+        else:
+            shape = (size, -1, self.dim[1], self.dim[2])
         return (self.prestates.reshape(shape), actions, rewards, self.poststates.reshape(shape), dones)
 
     def size(self):

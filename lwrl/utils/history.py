@@ -11,7 +11,7 @@ class History(object):
             obs = np.transpose(obs, (2, 0, 1))
 
         if self.history is None:
-            self.history = np.zeros((self.history_length, *obs.shape), dtype=np.uint8)
+            self.history = np.zeros((self.history_length, *obs.shape), dtype=obs.dtype)
             self.dim = obs.shape[1:]
 
         self.history[:-1] = self.history[1:]
