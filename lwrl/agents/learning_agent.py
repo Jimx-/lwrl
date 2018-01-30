@@ -10,17 +10,6 @@ class LearningAgent(Agent):
             discount_factor,
             optimizer_spec=None,
     ):
-        super().__init__(state_spec, action_spec)
-
-        if optimizer_spec is None:
-            optimizer_spec = {
-                "type": "Adam",
-                "args": {
-                    "lr": 0.00025,
-                }
-            }
-
-        self.optimizer_builder = lambda params:\
-            H.optimizer_dict[optimizer_spec['type']](params, **optimizer_spec['args'])
-
         self.discount_factor = discount_factor
+
+        super().__init__(state_spec, action_spec)

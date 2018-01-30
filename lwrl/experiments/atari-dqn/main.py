@@ -23,10 +23,14 @@ if __name__ == '__main__':
     else:
         test_env = env_factory(type=config['environment']['type'], **test_env_conf)
 
-    agent = agent_factory(**config['agent'], env=env, test_env=test_env, save_dir=args.save_dir)
+    saver_spec = dict(
+        save_dir=args.save_dir
+    )
+
+    agent = agent_factory(**config['agent'], env=env, test_env=test_env, saver_spec=saver_spec)
 
     if args.is_train:
         agent.train(logdir=args.log_dir)
     else:
-        agent.restore()
+        agent.restore_model()
         agent.test(render=True)
