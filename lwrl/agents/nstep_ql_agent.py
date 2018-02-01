@@ -1,9 +1,9 @@
-from lwrl.agents import MemoryAgent
-from lwrl.models import QModel
-from lwrl.models.networks import DeepQNetwork, DuelingDQN
+from lwrl.agents import BatchAgent
+from lwrl.models import NStepQModel
+from lwrl.models.networks import DeepQNetwork
 
 
-class BaseQLearningAgent(MemoryAgent):
+class BaseNStepQLearningAgent(BatchAgent):
     def __init__(
             self,
             state_spec,
@@ -11,24 +11,21 @@ class BaseQLearningAgent(MemoryAgent):
             network_cls,
             network_spec,
             optimizer,
-            memory,
             exploration_schedule,
             discount_factor,
             clip_error,
             update_target_freq,
             history_length,
-            learning_starts,
-            train_freq=1,
             batch_size=32,
+            keep_last_timestep=True,
             double_q_learning=False,
             saver_spec=None,
             state_preprocess_pipeline=None
     ):
-
         self.network_cls = network_cls
         self.network_spec = network_spec
         self.exploration_schedule = exploration_schedule
-        self.optimizer= optimizer
+        self.optimizer = optimizer
 
         self.global_step = 0
 
@@ -43,16 +40,14 @@ class BaseQLearningAgent(MemoryAgent):
             action_spec=action_spec,
             discount_factor=discount_factor,
             optimizer=optimizer,
-            memory=memory,
             history_length=history_length,
             batch_size=batch_size,
-            learning_starts=learning_starts,
-            train_freq=train_freq,
+            keep_last_timestep=keep_last_timestep,
             state_preprocess_pipeline=state_preprocess_pipeline
         )
 
     def init_model(self):
-        return QModel(
+        return NStepQModel(
             state_space=self.state_space,
             action_space=self.action_space,
             network_cls=self.network_cls,
@@ -68,11 +63,6 @@ class BaseQLearningAgent(MemoryAgent):
         )
 
 
-class QLearningAgent(BaseQLearningAgent):
+class NStepQLearningAgent(BaseNStepQLearningAgent):
     def __init__(self, *args, **kwargs):
         super().__init__(network_cls=DeepQNetwork, *args, **kwargs)
-
-
-class DuelingQLearningAgent(BaseQLearningAgent):
-    def __init__(self, *args, **kwargs):
-        super().__init__(network_cls=DuelingDQN, *args, **kwargs)

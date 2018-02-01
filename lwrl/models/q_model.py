@@ -13,12 +13,13 @@ class QModel(Model):
             network_cls,
             network_spec,
             exploration_schedule,
-            optimizer_spec,
+            optimizer,
             saver_spec,
             discount_factor,
             clip_error,
             update_target_freq,
-            double_q_learning=False
+            double_q_learning=False,
+            state_preprocess_pipeline=None
     ):
         self.network_cls = network_cls
         self.network_spec = network_spec
@@ -27,7 +28,15 @@ class QModel(Model):
         self.update_target_freq = update_target_freq
         self.double_q_learning = double_q_learning
 
-        super().__init__(state_space, action_space, exploration_schedule, optimizer_spec, saver_spec, discount_factor)
+        super().__init__(
+            state_space=state_space,
+            action_space=action_space,
+            exploration_schedule=exploration_schedule,
+            optimizer=optimizer,
+            saver_spec=saver_spec,
+            discount_factor=discount_factor,
+            state_preprocess_pipeline=state_preprocess_pipeline
+        )
 
     def init_model(self):
         super().init_model()
@@ -43,15 +52,17 @@ class QModel(Model):
         if not random_action:
             eps = 0.05
         if random.random() < eps:
-            return self.action_space.sample()
+            action = self.action_space.sample()
         else:
-            obs = torch.from_numpy(obs).type(H.float_tensor).unsqueeze(0) / 255.0
+            obs = self.preprocess_state(torch.from_numpy(obs).type(H.float_tensor).unsqueeze(0))
             with torch.no_grad():
-                return self.q_network(H.Variable(obs)).data.max(1)[1].cpu()[0]
+                action = self.q_network(H.Variable(obs)).data.max(1)[1].cpu()[0]
+
+        return action, self.timestep
 
     def update(self, obs_batch, action_batch, reward_batch, next_obs_batch, done_mask):
-        obs_batch = H.Variable(torch.from_numpy(obs_batch).type(H.float_tensor) / 255.0)
-        next_obs_batch = H.Variable(torch.from_numpy(next_obs_batch).type(H.float_tensor) / 255.0)
+        obs_batch = self.preprocess_state(H.Variable(torch.from_numpy(obs_batch).type(H.float_tensor)))
+        next_obs_batch = self.preprocess_state(H.Variable(torch.from_numpy(next_obs_batch).type(H.float_tensor)))
         action_batch = H.Variable(torch.from_numpy(action_batch).long())
         reward_batch = H.Variable(torch.from_numpy(reward_batch))
         neg_done_mask = H.Variable(torch.from_numpy(1.0 - done_mask).type(H.float_tensor))
@@ -63,9 +74,7 @@ class QModel(Model):
         # minimize (Q(s, a) - (r + gamma * max Q(s', a'; w'))^2
         q_values = self.q_network(obs_batch).gather(1, action_batch.unsqueeze(1)) # Q(s, a; w)
         next_max_q_values = self.target_network(next_obs_batch).detach().max(1)[0] # max Q(s', a'; w')
-        next_q_values = neg_done_mask * next_max_q_values
-        target_q_values = reward_batch + self.discount_factor * next_q_values # r + gamma * max Q(s', a'; w')
-        td_error = target_q_values.unsqueeze(1) - q_values
+        td_error = self.calculate_td_error(q_values, next_max_q_values, reward_batch, neg_done_mask)
         clipped_td_error = td_error.clamp(-self.clip_error, self.clip_error)
         grad = clipped_td_error * -1.0
 
@@ -78,6 +87,11 @@ class QModel(Model):
         # target networks <- online networks
         if self.num_updates % self.update_target_freq == 0:
             self.target_network.load_state_dict(self.q_network.state_dict())
+
+    def calculate_td_error(self, q_values, next_q_values, rewards, neg_done_mask):
+        next_q_values = neg_done_mask * next_q_values
+        target_q_values = rewards + self.discount_factor * next_q_values # r + gamma * max Q(s', a'; w')
+        return target_q_values.unsqueeze(1) - q_values
 
     def save(self, timestep):
         self.saver.save({

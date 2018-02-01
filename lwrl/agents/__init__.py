@@ -1,10 +1,14 @@
 from lwrl.agents.agent import Agent
 from lwrl.agents.learning_agent import LearningAgent
+from lwrl.agents.memory_agent import MemoryAgent
+from lwrl.agents.batch_agent import BatchAgent
 from lwrl.agents.ql_agent import QLearningAgent, DuelingQLearningAgent
+from lwrl.agents.nstep_ql_agent import NStepQLearningAgent
 
 agent_dict = dict(
     dqn_agent=QLearningAgent,
     duel_dqn_agent=DuelingQLearningAgent,
+    nstep_dqn_agent=NStepQLearningAgent,
 )
 
 def agent_factory(type, *args, **kwargs):

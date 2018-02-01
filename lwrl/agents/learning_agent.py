@@ -1,5 +1,4 @@
 from lwrl.agents import Agent
-import lwrl.utils.th_helper as H
 
 
 class LearningAgent(Agent):
@@ -8,8 +7,10 @@ class LearningAgent(Agent):
             state_spec,
             action_spec,
             discount_factor,
-            optimizer_spec=None,
+            optimizer=None,
+            state_preprocess_pipeline=None
     ):
         self.discount_factor = discount_factor
+        self.state_preprocess_pipeline = state_preprocess_pipeline
 
         super().__init__(state_spec, action_spec)

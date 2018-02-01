@@ -21,7 +21,7 @@
       }
     ],
 
-    "optimizer_spec": {
+    "optimizer": {
       "type": "Adam",
       "args": {
         "lr": 0.001
@@ -45,7 +45,6 @@
       }
     },
 
-    "max_timesteps": 100000,
     "history_length": 1,
     "learning_starts": 1000,
     "train_freq": 1,

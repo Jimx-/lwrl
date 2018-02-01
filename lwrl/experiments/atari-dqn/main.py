@@ -3,6 +3,7 @@ import argparse
 from lwrl.agents import agent_factory
 from lwrl.environments import env_factory
 from lwrl.utils import read_config
+from lwrl.executions import Runner
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str, help='Path to the config file')
@@ -27,10 +28,11 @@ if __name__ == '__main__':
         save_dir=args.save_dir
     )
 
-    agent = agent_factory(**config['agent'], env=env, test_env=test_env, saver_spec=saver_spec)
+    agent = agent_factory(**config['agent'], saver_spec=saver_spec)
+    runner = Runner(agent, env, test_env)
 
     if args.is_train:
-        agent.train(logdir=args.log_dir)
+        runner.train(logdir=args.log_dir)
     else:
         agent.restore_model()
-        agent.test(render=True)
+        runner.test(render=True)

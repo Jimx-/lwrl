@@ -1,9 +1,11 @@
 import random
 import torch
+from functools import reduce
 
 from lwrl.utils import schedule
 import lwrl.utils.th_helper as H
 from lwrl.utils.saver import Saver
+from lwrl.utils.preprocess import get_preprocessor
 
 
 class Model:
@@ -12,26 +14,31 @@ class Model:
             state_space,
             action_space,
             exploration_schedule,
-            optimizer_spec=None,
+            optimizer=None,
             saver_spec=None,
-            discount_factor=0.99
+            discount_factor=0.99,
+            state_preprocess_pipeline=None
     ):
         self.state_space = state_space
         self.action_space = action_space
         self.num_actions = action_space.n
 
+        self.state_preprocess_pipeline = state_preprocess_pipeline
         self.exploration_schedule = schedule.get_schedule(exploration_schedule)
 
-        if optimizer_spec is None:
-            optimizer_spec = {
+        if optimizer is None:
+            optimizer = {
                 "type": "Adam",
                 "args": {
                     "lr": 0.00025,
                 }
             }
 
-        self.optimizer_builder = lambda params: \
-            H.optimizer_dict[optimizer_spec['type']](params, **optimizer_spec['args'])
+        if type(optimizer) is dict:
+            self.optimizer_builder = lambda params: \
+                H.optimizer_dict[optimizer['type']](params, **optimizer['args'])
+        else:
+            self.optimizer_builder = lambda params: optimizer
 
         self.discount_factor = discount_factor
 
@@ -45,8 +52,16 @@ class Model:
         self.init_model()
 
     def init_model(self):
+        self.state_preprocessing = []
+        if self.state_preprocess_pipeline is not None:
+            self.state_preprocessing = [get_preprocessor(**spec) for spec in
+                                        self.state_preprocess_pipeline]
+
         self.timestep = 0
         self.num_updates = 0
+
+    def preprocess_state(self, state):
+        return reduce(lambda x, y: y.process(x), self.state_preprocessing, state)
 
     def act(self, obs, random_action=True):
         raise NotImplementedError()
