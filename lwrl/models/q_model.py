@@ -46,6 +46,10 @@ class QModel(Model):
 
         self.optimizer = self.optimizer_builder(self.q_network.parameters())
 
+    def predict(self, obs):
+        obs = self.preprocess_state(torch.from_numpy(obs).type(H.float_tensor).unsqueeze(0))
+        return self.q_network(H.Variable(obs)).data
+
     def act(self, obs, random_action=True):
         # epsilon-greedy action selection
         eps = self.exploration_schedule.value(self.timestep)

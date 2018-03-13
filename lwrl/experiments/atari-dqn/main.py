@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str, help='Path to the config file')
 parser.add_argument('--save_dir', type=str, help='Directory to save the trained model', default=None)
 parser.add_argument('--log_dir', type=str, help='Directory to save the training log', default=None)
-parser.add_argument('--is_train', type=bool, help='Whether to train or to test the model', default=False)
+parser.add_argument('--is_train', help='Whether to train or to test the model', action='store_true', default=False)
 
 if __name__ == '__main__':
     args = parser.parse_args()
