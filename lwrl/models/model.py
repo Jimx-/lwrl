@@ -11,17 +11,17 @@ from lwrl.utils.preprocess import get_preprocessor
 class Model:
     def __init__(
             self,
-            state_space,
-            action_space,
+            state_spec,
+            action_spec,
             exploration_schedule,
             optimizer=None,
             saver_spec=None,
             discount_factor=0.99,
             state_preprocess_pipeline=None
     ):
-        self.state_space = state_space
-        self.action_space = action_space
-        self.num_actions = action_space.n
+        self.state_spec = state_spec
+        self.action_spec = action_spec
+        self.num_actions = action_spec['num_actions']
 
         self.state_preprocess_pipeline = state_preprocess_pipeline
         self.exploration_schedule = schedule.get_schedule(exploration_schedule)

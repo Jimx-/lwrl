@@ -53,8 +53,8 @@ class BaseQLearningAgent(MemoryAgent):
 
     def init_model(self):
         return QModel(
-            state_space=self.state_space,
-            action_space=self.action_space,
+            state_spec=self.state_spec,
+            action_spec=self.action_spec,
             network_cls=self.network_cls,
             network_spec=self.network_spec,
             exploration_schedule=self.exploration_schedule,

@@ -1,4 +1,5 @@
 import random
+import numpy as np
 import torch
 
 from lwrl.models import Model
@@ -8,8 +9,8 @@ import lwrl.utils.th_helper as H
 class QModel(Model):
     def __init__(
             self,
-            state_space,
-            action_space,
+            state_spec,
+            action_spec,
             network_cls,
             network_spec,
             exploration_schedule,
@@ -29,8 +30,8 @@ class QModel(Model):
         self.double_q_learning = double_q_learning
 
         super().__init__(
-            state_space=state_space,
-            action_space=action_space,
+            state_spec=state_spec,
+            action_spec=action_spec,
             exploration_schedule=exploration_schedule,
             optimizer=optimizer,
             saver_spec=saver_spec,
@@ -56,7 +57,7 @@ class QModel(Model):
         if not random_action:
             eps = 0.05
         if random.random() < eps:
-            action = self.action_space.sample()
+            action = np.random.randint(self.action_spec['num_actions'])
         else:
             obs = self.preprocess_state(torch.from_numpy(obs).type(H.float_tensor).unsqueeze(0))
             with torch.no_grad():

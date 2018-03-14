@@ -15,7 +15,6 @@ class Runner:
             save_freq=100000,
             test_freq=1000,
             logdir=None,
-            render=False,
             verbose=True
     ):
         pbar = range(max_timestep)
@@ -29,13 +28,10 @@ class Runner:
         episode_reward = 0
         episode_rewards = []
         for t in pbar:
-            if render:
-                self.env.render()
-
             action = self.agent.act(obs)
 
             # take action in the environment
-            obs, reward, done, _ = self.env.step(action)
+            obs, reward, done = self.env.step(action)
             episode_reward += reward
             # observe the effect
             self.agent.observe(obs, action, reward, done, training=True)
@@ -71,7 +67,7 @@ class Runner:
             if t % save_freq == 0:
                 self.agent.model.save(t)
 
-    def test(self, num_episodes=10, render=False):
+    def test(self, num_episodes=10):
         scores = []
         for episode in range(num_episodes):
             obs = self.test_env.reset()
@@ -79,11 +75,8 @@ class Runner:
             acc_reward = 0
 
             while not done:
-                if render:
-                    self.test_env.render()
-
                 action = self.agent.act(obs, random_action=False)
-                obs, reward, done, _ = self.test_env.step(action)
+                obs, reward, done = self.test_env.step(action)
                 self.agent.observe(obs, action, reward, done)
 
                 acc_reward += reward

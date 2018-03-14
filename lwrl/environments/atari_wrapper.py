@@ -7,6 +7,9 @@ import gym
 from gym import spaces
 import cv2
 
+from lwrl.environments import OpenAIGym
+
+
 class NoopResetEnv(gym.Wrapper):
     def __init__(self, env=None, noop_max=30):
         """Sample initial states by taking random number of no-ops on reset.
@@ -142,9 +145,9 @@ def wrap_gym_atari_env(env, episodic_life=True, clip_reward=True):
         env = ClippedRewardsWrapper(env)
     return env
 
-def get_atari_env(id, log_dir=None, monitor=True, *args, **kwargs):
+def get_atari_env(id, monitor_dir=None, visualize=False, *args, **kwargs):
     env = make_atari(id)
-    if log_dir is not None:
-        env = gym.wrappers.Monitor(env, log_dir, force=True)
+    if monitor_dir is not None:
+        env = gym.wrappers.Monitor(env, monitor_dir, force=True)
     env = wrap_gym_atari_env(env, *args, **kwargs)
-    return env
+    return OpenAIGym(env, visualize=visualize)

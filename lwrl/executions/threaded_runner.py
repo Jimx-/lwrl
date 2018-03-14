@@ -107,7 +107,7 @@ class ThreadedRunner:
                 action = agent.act(obs)
 
                 # take action in the environment
-                obs, reward, done, _ = env.step(action)
+                obs, reward, done = env.step(action)
                 episode_reward += reward
                 timestep += 1
                 # observe the effect
@@ -136,7 +136,7 @@ class ThreadedRunner:
                     self.test_envs[0].render()
 
                 action = self.agents[0].act(obs, random_action=False)
-                obs, reward, done, _ = self.test_envs[0].step(action)
+                obs, reward, done = self.test_envs[0].step(action)
                 self.agents[0].observe(obs, action, reward, done)
 
                 acc_reward += reward
