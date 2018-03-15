@@ -1,7 +1,7 @@
 import gym
 
 from lwrl.environments.environment import Environment
-from lwrl.environments.openai_gym import OpenAIGym
+from lwrl.environments.openai_gym import OpenAIGym, OpenAIGymWrapper
 from lwrl.environments.atari_wrapper import get_atari_env
 
 

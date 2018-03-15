@@ -7,7 +7,7 @@ import gym
 from gym import spaces
 import cv2
 
-from lwrl.environments import OpenAIGym
+from lwrl.environments import OpenAIGymWrapper
 
 
 class NoopResetEnv(gym.Wrapper):
@@ -150,4 +150,4 @@ def get_atari_env(id, monitor_dir=None, visualize=False, *args, **kwargs):
     if monitor_dir is not None:
         env = gym.wrappers.Monitor(env, monitor_dir, force=True)
     env = wrap_gym_atari_env(env, *args, **kwargs)
-    return OpenAIGym(env, visualize=visualize)
+    return OpenAIGymWrapper(env, visualize=visualize)

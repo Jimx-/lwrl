@@ -1,5 +1,6 @@
 import random
 import torch
+import numpy as np
 from functools import reduce
 
 from lwrl.utils import schedule
@@ -24,7 +25,9 @@ class Model:
         self.num_actions = action_spec['num_actions']
 
         self.state_preprocess_pipeline = state_preprocess_pipeline
-        self.exploration_schedule = schedule.get_schedule(exploration_schedule)
+        self.exploration_schedule = None
+        if exploration_schedule is not None:
+            self.exploration_schedule = schedule.get_schedule(exploration_schedule)
 
         if optimizer is None:
             optimizer = {
@@ -63,8 +66,29 @@ class Model:
     def preprocess_state(self, state):
         return reduce(lambda x, y: y.process(x), self.state_preprocessing, state)
 
+    def act_explore(self, action, eps, action_spec):
+        action_type = action_spec['type']
+        if action_type == 'int':
+            if random.random() < eps:
+                action = np.random.randint(self.action_spec['num_actions'])
+
+        return action
+
+    def get_action(self, obs, random_action):
+        raise NotImplementedError
+
     def act(self, obs, random_action=True):
-        raise NotImplementedError()
+        obs = self.preprocess_state(torch.from_numpy(obs).type(H.float_tensor).unsqueeze(0))
+        action = self.get_action(obs, random_action)
+
+        if self.exploration_schedule is not None:
+            eps = self.exploration_schedule.value(self.timestep)
+            if not random_action:
+                eps = 0.05
+
+            action = self.act_explore(action, eps, self.action_spec)
+
+        return action, self.timestep
 
     def observe(self, obs, action, reward, done):
         self.timestep += 1
@@ -73,7 +97,7 @@ class Model:
         self.num_updates += 1
 
     def save(self, timestep):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def restore(self):
-        raise NotImplementedError()
+        raise NotImplementedError

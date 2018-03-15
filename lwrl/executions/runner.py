@@ -49,8 +49,8 @@ class Runner:
                     else:
                         avg_r = np.mean(episode_rewards[-101:-1])
                     pbar.set_description(
-                        'Train: episode: {}, global steps: {}, episode score: {:.1f}, avg score: {:.2f}, exploration rate: {:.3f}'.format(
-                            total_episodes, t, episode_reward, avg_r, self.agent.model.exploration_schedule.value(t)
+                        'Train: episode: {}, global steps: {}, episode score: {:.1f}, avg score: {:.2f}'.format(
+                            total_episodes, t, episode_reward, avg_r
                         )
                     )
 

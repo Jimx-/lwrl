@@ -3,13 +3,10 @@ import gym
 from lwrl.environments import Environment
 
 
-class OpenAIGym(Environment):
-    def __init__(self, env_or_id, monitor_dir=None, monitor_force=False, visualize=False):
-        self.env = env_or_id
+class OpenAIGymWrapper(Environment):
+    def __init__(self, env, monitor_dir=None, monitor_force=False, visualize=False):
+        self.env = env
         self.visualize = visualize
-
-        if isinstance(env_or_id, str):
-            self.env = gym.make(self.env)
 
         if monitor_dir is not None:
             self.env = gym.wrappers.Monitor(self.env, monitor_dir, force=monitor_force)
@@ -34,4 +31,10 @@ class OpenAIGym(Environment):
     def action_spec(self):
         space = self.env.action_space
         if isinstance(space, gym.spaces.Discrete):
-            return dict(num_actions=space.n, type='int')
+            return dict(shape=(), num_actions=space.n, type='int')
+
+
+class OpenAIGym(OpenAIGymWrapper):
+    def __init__(self, id, *args, **kwargs):
+        env = gym.make(id)
+        super().__init__(env, *args, **kwargs)

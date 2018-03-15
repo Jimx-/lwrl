@@ -36,7 +36,7 @@ class QModel(Model):
             optimizer=optimizer,
             saver_spec=saver_spec,
             discount_factor=discount_factor,
-            state_preprocess_pipeline=state_preprocess_pipeline
+            state_preprocess_pipeline=state_preprocess_pipeline,
         )
 
     def init_model(self):
@@ -51,19 +51,8 @@ class QModel(Model):
         obs = self.preprocess_state(torch.from_numpy(obs).type(H.float_tensor).unsqueeze(0))
         return self.q_network(H.Variable(obs)).data
 
-    def act(self, obs, random_action=True):
-        # epsilon-greedy action selection
-        eps = self.exploration_schedule.value(self.timestep)
-        if not random_action:
-            eps = 0.05
-        if random.random() < eps:
-            action = np.random.randint(self.action_spec['num_actions'])
-        else:
-            obs = self.preprocess_state(torch.from_numpy(obs).type(H.float_tensor).unsqueeze(0))
-            with torch.no_grad():
-                action = self.q_network(H.Variable(obs)).data.max(1)[1].cpu()[0]
-
-        return action, self.timestep
+    def get_action(self, obs, random_action):
+        return self.q_network(H.Variable(obs, volatile=True)).data.max(1)[1].cpu()[0]
 
     def update(self, obs_batch, action_batch, reward_batch, next_obs_batch, done_mask):
         obs_batch = self.preprocess_state(H.Variable(torch.from_numpy(obs_batch).type(H.float_tensor)))
