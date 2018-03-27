@@ -22,7 +22,7 @@ class SequentialMemory(Memory):
             obs = np.transpose(obs, (2, 0, 1))
 
         if self.obs_buffer is None:
-            self.action_buffer = np.empty(self.max_length, dtype=np.uint8)
+            self.action_buffer = np.empty(self.max_length, dtype=action.dtype)
             self.reward_buffer = np.empty(self.max_length, dtype=np.float32)
             self.obs_buffer = np.empty((self.max_length, *obs.shape), dtype=obs.dtype)
             self.terminal_buffer = np.empty(self.max_length, dtype=bool)

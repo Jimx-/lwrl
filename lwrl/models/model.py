@@ -22,7 +22,6 @@ class Model:
     ):
         self.state_spec = state_spec
         self.action_spec = action_spec
-        self.num_actions = action_spec['num_actions']
 
         self.state_preprocess_pipeline = state_preprocess_pipeline
         self.exploration_schedule = None

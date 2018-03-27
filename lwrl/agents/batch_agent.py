@@ -62,7 +62,10 @@ class BatchAgent(LearningAgent):
 
         obs = self.history.get()
         if self.next_obs_batch is None:
-            self.action_batch = np.empty(self.batch_size, dtype=type(action))
+            if self.action_spec['type'] == 'int':
+                self.action_batch = np.empty(self.batch_size, dtype=type(action))
+            else:
+                self.action_batch = np.empty(self.batch_size, dtype=np.float32)
             self.reward_batch = np.empty(self.batch_size, dtype=np.float32)
             self.next_obs_batch = np.empty((self.batch_size, *obs.shape), dtype=obs.dtype)
             self.terminal_batch = np.empty(self.batch_size, dtype=bool)

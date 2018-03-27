@@ -1,4 +1,5 @@
 import gym
+import numpy as np
 
 from lwrl.environments import Environment
 
@@ -32,6 +33,11 @@ class OpenAIGymWrapper(Environment):
         space = self.env.action_space
         if isinstance(space, gym.spaces.Discrete):
             return dict(shape=(), num_actions=space.n, type='int')
+        elif isinstance(space, gym.spaces.Box):
+            if (space.low == space.low[0]).all() and (space.high == space.high[0]).all():
+                return dict(type='float', shape=space.low.shape,
+                            min_value=np.float32(space.low[0]),
+                            max_value=np.float32(space.high[0]))
 
 
 class OpenAIGym(OpenAIGymWrapper):

@@ -43,7 +43,10 @@ class PGModel(DistributionModel):
     def update(self, obs_batch, action_batch, reward_batch, next_obs_batch, done_mask):
         obs_batch = self.preprocess_state(H.Variable(torch.from_numpy(obs_batch).type(H.float_tensor)))
         next_obs_batch = self.preprocess_state(H.Variable(torch.from_numpy(next_obs_batch).type(H.float_tensor)))
-        action_batch = H.Variable(torch.from_numpy(action_batch).long())
+        if self.action_spec['type'] == 'int':
+            action_batch = H.Variable(torch.from_numpy(action_batch).long())
+        else:
+            action_batch = H.Variable(torch.from_numpy(action_batch))
         reward_batch = H.Variable(torch.from_numpy(reward_batch))
         neg_done_mask = H.Variable(torch.from_numpy(1.0 - done_mask).type(H.float_tensor))
 

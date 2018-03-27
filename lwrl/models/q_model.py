@@ -42,8 +42,8 @@ class QModel(Model):
     def init_model(self):
         super().init_model()
 
-        self.q_network = self.network_cls(self.network_spec, self.num_actions).type(H.float_tensor)
-        self.target_network = self.network_cls(self.network_spec, self.num_actions).type(H.float_tensor)
+        self.q_network = self.network_cls(self.network_spec, self.action_spec['num_actions']).type(H.float_tensor)
+        self.target_network = self.network_cls(self.network_spec, self.action_spec['num_actions']).type(H.float_tensor)
 
         self.optimizer = self.optimizer_builder(self.q_network.parameters())
 
