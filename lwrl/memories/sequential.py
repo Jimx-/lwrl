@@ -1,7 +1,7 @@
 import random
 
-import scipy.io as sio
 import numpy as np
+import scipy.io as sio
 
 from lwrl.memories import Memory
 
@@ -22,9 +22,14 @@ class SequentialMemory(Memory):
             obs = np.transpose(obs, (2, 0, 1))
 
         if self.obs_buffer is None:
-            self.action_buffer = np.empty(self.max_length, dtype=action.dtype)
+            try:
+                action_type = action.dtype
+            except AttributeError:
+                action_type = type(action)
+            self.action_buffer = np.empty(self.max_length, dtype=action_type)
             self.reward_buffer = np.empty(self.max_length, dtype=np.float32)
-            self.obs_buffer = np.empty((self.max_length, *obs.shape), dtype=obs.dtype)
+            self.obs_buffer = np.empty(
+                (self.max_length, *obs.shape), dtype=obs.dtype)
             self.terminal_buffer = np.empty(self.max_length, dtype=bool)
             self.dim = obs.shape
 
@@ -38,16 +43,19 @@ class SequentialMemory(Memory):
     def _get_obs(self, index):
         index = index % self.count
         if index >= self.history_length - 1:
-            return self.obs_buffer[(index - self.history_length + 1):(index + 1), ...]
+            return self.obs_buffer[(index - self.history_length + 1):(
+                index + 1), ...]
         else:
-            indices = [(index - i) % self.count for i in reversed(range(self.history_length))]
+            indices = [(index - i) % self.count
+                       for i in reversed(range(self.history_length))]
             return self.obs_buffer[indices]
 
     def sample(self, size):
         if self.prestates is None:
             state_shape = (size, self.history_length, *self.dim)
             self.prestates = np.empty(state_shape, dtype=self.obs_buffer.dtype)
-            self.poststates = np.empty(state_shape, dtype=self.obs_buffer.dtype)
+            self.poststates = np.empty(
+                state_shape, dtype=self.obs_buffer.dtype)
 
         indices = []
         i = 0
@@ -56,7 +64,8 @@ class SequentialMemory(Memory):
                 index = random.randint(self.history_length, self.count - 1)
                 if index >= self.current and index - self.history_length < self.current:
                     continue
-                if self.terminal_buffer[(index - self.history_length):index].any():
+                if self.terminal_buffer[(
+                        index - self.history_length):index].any():
                     continue
                 break
 
@@ -75,15 +84,17 @@ class SequentialMemory(Memory):
             shape = (size, self.dim[0])
         else:
             shape = (size, -1, self.dim[1], self.dim[2])
-        return (self.prestates.reshape(shape), actions, rewards, self.poststates.reshape(shape), dones)
+        return (self.prestates.reshape(shape), actions, rewards,
+                self.poststates.reshape(shape), dones)
 
     def size(self):
         return self.count
 
     def save(self, filename):
-        sio.savemat(filename, mdict=dict(
-            observations=self.obs_buffer,
-            actions=self.action_buffer,
-            rewards=self.reward_buffer,
-            terminals=self.terminal_buffer
-        ))
+        sio.savemat(
+            filename,
+            mdict=dict(
+                observations=self.obs_buffer,
+                actions=self.action_buffer,
+                rewards=self.reward_buffer,
+                terminals=self.terminal_buffer))

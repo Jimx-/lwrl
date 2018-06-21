@@ -1,11 +1,12 @@
 """
     This file is copied/apdated from https://github.com/berkeleydeeprlcourse/homework/tree/master/hw3
 """
-import numpy as np
 from collections import deque
-import gym
-from gym import spaces
+
 import cv2
+import gym
+import numpy as np
+from gym import spaces
 
 from lwrl.environments import OpenAIGymWrapper
 

@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class History(object):
     def __init__(self, history_length=1):
         self.history_length = history_length

@@ -1,8 +1,9 @@
 import random
+
 import torch
 
-from lwrl.models import QModel
 import lwrl.utils.th_helper as H
+from lwrl.models import QModel
 
 
 class NStepQModel(QModel):

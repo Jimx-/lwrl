@@ -1,12 +1,13 @@
 import random
-import torch
-import numpy as np
 from functools import reduce
 
-from lwrl.utils import schedule
+import numpy as np
+import torch
+
 import lwrl.utils.th_helper as H
-from lwrl.utils.saver import Saver
+from lwrl.utils import schedule
 from lwrl.utils.preprocess import get_preprocessor
+from lwrl.utils.saver import Saver
 
 
 class Model:

@@ -1,7 +1,8 @@
-import tqdm
-import numpy as np
-from tensorboard_logger import Logger
 import threading
+
+import numpy as np
+import tqdm
+from tensorboard_logger import Logger
 
 from lwrl.agents import agent_dict
 

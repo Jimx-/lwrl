@@ -1,7 +1,7 @@
 import torch
 
-from lwrl.models import DistributionModel
 import lwrl.utils.th_helper as H
+from lwrl.models import DistributionModel
 
 
 class PGModel(DistributionModel):

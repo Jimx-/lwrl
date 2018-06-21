@@ -1,11 +1,12 @@
 import argparse
 import copy
+
 import numpy as np
 
 from lwrl.agents import agent_factory
 from lwrl.environments import env_factory
-from lwrl.utils import read_config
 from lwrl.executions import ThreadedRunner, threaded_agent_wrapper
+from lwrl.utils import read_config
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-c', '--config', type=str, help='Path to the config file')

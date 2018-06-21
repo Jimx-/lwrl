@@ -13,5 +13,6 @@ agent_dict = dict(
     vpg_agent=VPGAgent,
 )
 
+
 def agent_factory(type, *args, **kwargs):
     return agent_dict[type](*args, **kwargs)

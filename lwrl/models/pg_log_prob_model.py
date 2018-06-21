@@ -2,7 +2,8 @@ from lwrl.models import PGModel
 
 
 class PGLogProbModel(PGModel):
-    def calculate_loss(self, obs_batch, action_batch, reward_batch, next_obs_batch, neg_done_mask):
+    def calculate_loss(self, obs_batch, action_batch, reward_batch,
+                       next_obs_batch, neg_done_mask):
         dist_params = self.network(obs_batch)
         log_prob = self.network.log_prob(dist_params, action_batch)
 
