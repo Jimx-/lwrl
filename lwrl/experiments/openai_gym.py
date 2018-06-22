@@ -51,7 +51,7 @@ if __name__ == '__main__':
     runner = Runner(agent, env)
 
     if args.is_train:
-        runner.train(logdir=args.log_dir)
+        runner.train()
     else:
         agent.restore_model()
         runner.test()

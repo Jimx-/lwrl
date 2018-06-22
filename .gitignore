@@ -1,6 +1,10 @@
+# saved models
 trained_models
 
+# project files
 .ropeproject
-
 __pycache__
 
+# virtualenv 
+venv
+activate

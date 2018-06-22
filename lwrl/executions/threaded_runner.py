@@ -2,7 +2,6 @@ import threading
 
 import numpy as np
 import tqdm
-from tensorboard_logger import Logger
 
 from lwrl.agents import agent_dict
 
@@ -19,37 +18,34 @@ class ThreadedRunner:
         assert len(self.agents) == len(self.envs)
         assert len(self.envs) == len(self.test_envs)
 
-    def train(
-            self,
-            max_timestep=50000000,
-            save_freq=100000,
-            test_freq=1000,
-            logdir=None,
-            render=False,
-            verbose=True
-    ):
+    def train(self,
+              max_timestep=50000000,
+              save_freq=100000,
+              test_freq=1000,
+              logdir=None,
+              render=False,
+              verbose=True):
         if verbose:
             pbar = tqdm.tqdm(total=max_timestep)
-
-        if logdir is not None:
-            logger = Logger(logdir)
 
         self.episode_rewards = []
         self.stopped = False
         self.global_timestep = 0
         self.last_timestep = 0
 
-        threads = [threading.Thread(target=self._train_single, args=(t, self.agents[t], self.envs[t]),
-                                    kwargs=dict(
-                                        render=render
-                                    ))
-                       for t in range(len(self.agents))]
+        threads = [
+            threading.Thread(
+                target=self._train_single,
+                args=(t, self.agents[t], self.envs[t]),
+                kwargs=dict(render=render)) for t in range(len(self.agents))
+        ]
 
         for t in threads:
             t.start()
 
         try:
-            while any([t.is_alive() for t in threads]) and self.global_timestep < max_timestep:
+            while any([t.is_alive() for t in threads
+                       ]) and self.global_timestep < max_timestep:
                 total_episodes = len(self.episode_rewards)
                 if total_episodes == 0:
                     continue
@@ -63,18 +59,20 @@ class ThreadedRunner:
                     pbar.update(self.global_timestep - self.last_timestep)
                     self.last_timestep = self.global_timestep
                     pbar.set_description(
-                        'Train: episode: {}, global steps: {}, episode score: {:.1f}, avg score: {:.2f}'.format(
-                            total_episodes, self.global_timestep, self.episode_rewards[-1], avg_r
-                        )
-                    )
+                        'Train: episode: {}, global steps: {}, episode score: {:.1f}, avg score: {:.2f}'.
+                        format(total_episodes, self.global_timestep,
+                               self.episode_rewards[-1], avg_r))
 
-                if logdir is not None:
-                    logger.log_value('episode_reward', self.episode_rewards[-1], self.global_timestep)
-                    logger.log_value('avg_episode_reward', avg_r, self.global_timestep)
+                #if logdir is not None:
+                #   logger.log_value('episode_reward',
+                #                    self.episode_rewards[-1],
+                #                    self.global_timestep)
+                #   logger.log_value('avg_episode_reward', avg_r,
+                #                    self.global_timestep)
 
-                    #if total_episodes % test_freq == 0:
-                    #    test_score = self.test()
-                    #    logger.log_value('test_score', test_score, self.global_timestep)
+                #if total_episodes % test_freq == 0:
+                #    test_score = self.test()
+                #    logger.log_value('test_score', test_score, self.global_timestep)
 
                 if self.global_timestep % save_freq == 0:
                     self.agents[0].model.save(self.global_timestep)
@@ -123,7 +121,6 @@ class ThreadedRunner:
 
                 if self.stopped:
                     return
-
 
     def test(self, num_episodes=10, render=False):
         scores = []
