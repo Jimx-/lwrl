@@ -1,5 +1,7 @@
-import visdom
 import logging
+import time
+
+import visdom
 
 
 class Singleton(type):

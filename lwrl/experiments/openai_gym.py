@@ -9,16 +9,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--env_id', type=str, help='Gym environment id')
 parser.add_argument('--agent', type=str, help='Path to the agent config file')
 parser.add_argument(
-    '--network', type=str, help='Path to the agent config file')
+    '--network', type=str, help='Path to the network config file')
 parser.add_argument(
     '--save_dir',
     type=str,
     help='Directory to save the trained model',
-    default=None)
-parser.add_argument(
-    '--log_dir',
-    type=str,
-    help='Directory to save the training log',
     default=None)
 parser.add_argument(
     '--is_train',
