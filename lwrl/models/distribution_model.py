@@ -48,6 +48,7 @@ class DistributionModel(Model):
             if 'min_value' in action_spec:
                 return BetaDistributionNetwork(
                     network_spec,
+                    shape=action_spec['shape'],
                     min_value=action_spec['min_value'],
                     max_value=action_spec['max_value'])
 
@@ -57,7 +58,7 @@ class DistributionModel(Model):
         action = self.network.sample(
             dist_param,
             deterministic=(not random_action) or self.require_deterministic)
-        return action.item()
+        return action
 
     def save(self, timestep):
         pass

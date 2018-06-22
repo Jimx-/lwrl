@@ -9,14 +9,12 @@ class Runner:
         self.env = env
         self.test_env = test_env if test_env is not None else self.env
 
-    def train(
-            self,
-            max_timestep=50000000,
-            save_freq=100000,
-            test_freq=1000,
-            logdir=None,
-            verbose=True
-    ):
+    def train(self,
+              max_timestep=50000000,
+              save_freq=100000,
+              test_freq=1000,
+              logdir=None,
+              verbose=True):
         pbar = range(max_timestep)
         if verbose:
             pbar = tqdm.tqdm(pbar)
@@ -49,10 +47,8 @@ class Runner:
                     else:
                         avg_r = np.mean(episode_rewards[-101:-1])
                     pbar.set_description(
-                        'Train: episode: {}, global steps: {}, episode score: {:.1f}, avg score: {:.2f}'.format(
-                            total_episodes, t, episode_reward, avg_r
-                        )
-                    )
+                        'Train: episode: {}, global steps: {}, episode score: {:.1f}, avg score: {:.2f}'.
+                        format(total_episodes, t, episode_reward, avg_r))
 
                 if logdir is not None:
                     logger.log_value('episode_reward', episode_reward, t)
