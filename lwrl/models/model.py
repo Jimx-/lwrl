@@ -11,23 +11,22 @@ from lwrl.utils.saver import Saver
 
 
 class Model:
-    def __init__(
-            self,
-            state_spec,
-            action_spec,
-            exploration_schedule,
-            optimizer=None,
-            saver_spec=None,
-            discount_factor=0.99,
-            state_preprocess_pipeline=None
-    ):
+    def __init__(self,
+                 state_spec,
+                 action_spec,
+                 exploration_schedule,
+                 optimizer=None,
+                 saver_spec=None,
+                 discount_factor=0.99,
+                 state_preprocess_pipeline=None):
         self.state_spec = state_spec
         self.action_spec = action_spec
 
         self.state_preprocess_pipeline = state_preprocess_pipeline
         self.exploration_schedule = None
         if exploration_schedule is not None:
-            self.exploration_schedule = schedule.get_schedule(exploration_schedule)
+            self.exploration_schedule = schedule.get_schedule(
+                exploration_schedule)
 
         if optimizer is None:
             optimizer = {
@@ -57,14 +56,17 @@ class Model:
     def init_model(self):
         self.state_preprocessing = []
         if self.state_preprocess_pipeline is not None:
-            self.state_preprocessing = [get_preprocessor(**spec) for spec in
-                                        self.state_preprocess_pipeline]
+            self.state_preprocessing = [
+                get_preprocessor(**spec)
+                for spec in self.state_preprocess_pipeline
+            ]
 
         self.timestep = 0
         self.num_updates = 0
 
     def preprocess_state(self, state):
-        return reduce(lambda x, y: y.process(x), self.state_preprocessing, state)
+        return reduce(lambda x, y: y.process(x), self.state_preprocessing,
+                      state)
 
     def act_explore(self, action, eps, action_spec):
         action_type = action_spec['type']
@@ -78,7 +80,8 @@ class Model:
         raise NotImplementedError
 
     def act(self, obs, random_action=True):
-        obs = self.preprocess_state(torch.from_numpy(obs).type(H.float_tensor).unsqueeze(0))
+        obs = self.preprocess_state(
+            torch.from_numpy(obs).type(H.float_tensor).unsqueeze(0))
         action = self.get_action(obs, random_action)
 
         if self.exploration_schedule is not None:
@@ -91,9 +94,12 @@ class Model:
         return action, self.timestep
 
     def observe(self, obs, action, reward, done):
+        # obs is the processed observation
         self.timestep += 1
 
-    def update(self, obs_batch, action_batch, reward_batch, next_obs_batch, done_mask):
+    def update(self, obs_batch, action_batch, reward_batch, next_obs_batch,
+               done_mask):
+        # obs_batch and next_obs_batch are not preprocessed
         self.num_updates += 1
 
     def save(self, timestep):

@@ -30,4 +30,4 @@ class CategoricalDistributionNetwork(DistributionNetwork):
         return distribution.sample().item()
 
     def log_prob(self, distribution, action):
-        return distribution.log_prob(action).unsqueeze(-1)
+        return distribution.log_prob(action)

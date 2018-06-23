@@ -6,23 +6,28 @@ class VPGAgent(BatchAgent):
     """
     Vanilla Policy Gradient Agent
     """
-    def __init__(
-            self,
-            state_spec,
-            action_spec,
-            network_spec,
-            optimizer,
-            discount_factor,
-            history_length,
-            batch_size=1000,
-            exploration_schedule=None,
-            keep_last_timestep=True,
-            saver_spec=None,
-            state_preprocess_pipeline=None
-    ):
+
+    def __init__(self,
+                 state_spec,
+                 action_spec,
+                 network_spec,
+                 optimizer,
+                 discount_factor,
+                 history_length,
+                 batch_size=1000,
+                 exploration_schedule=None,
+                 keep_last_timestep=True,
+                 saver_spec=None,
+                 state_preprocess_pipeline=None,
+                 baseline_mode=None,
+                 baseline_spec=None,
+                 baseline_optimizer=None):
         self.network_spec = network_spec
         self.exploration_schedule = exploration_schedule
         self.optimizer = optimizer
+        self.baseline_mode = baseline_mode
+        self.baseline_spec = baseline_spec
+        self.baseline_optimizer = baseline_optimizer
 
         self.global_step = 0
 
@@ -36,8 +41,7 @@ class VPGAgent(BatchAgent):
             history_length=history_length,
             batch_size=batch_size,
             keep_last_timestep=keep_last_timestep,
-            state_preprocess_pipeline=state_preprocess_pipeline
-        )
+            state_preprocess_pipeline=state_preprocess_pipeline)
 
     def init_model(self):
         return PGLogProbModel(
@@ -48,5 +52,7 @@ class VPGAgent(BatchAgent):
             optimizer=self.optimizer,
             saver_spec=self.saver_spec,
             discount_factor=self.discount_factor,
-            state_preprocess_pipeline=self.state_preprocess_pipeline
-        )
+            state_preprocess_pipeline=self.state_preprocess_pipeline,
+            baseline_mode=self.baseline_mode,
+            baseline_spec=self.baseline_spec,
+            baseline_optimizer=self.baseline_optimizer)
