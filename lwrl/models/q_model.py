@@ -55,7 +55,7 @@ class QModel(Model):
             torch.from_numpy(obs).type(H.float_tensor).unsqueeze(0))
         return self.q_network(H.Variable(obs)).data
 
-    def get_action(self, obs, random_action):
+    def get_action(self, obs, random_action, update):
         with torch.no_grad():
             return self.q_network(H.Variable(obs)).data.max(1)[1].cpu()[0]
 

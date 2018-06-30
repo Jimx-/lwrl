@@ -1,4 +1,5 @@
 import random
+import torch
 
 import numpy as np
 import scipy.io as sio
@@ -22,11 +23,15 @@ class SequentialMemory(Memory):
             obs = np.transpose(obs, (2, 0, 1))
 
         if self.obs_buffer is None:
+            # infer action type
             try:
                 action_type = action.dtype
+                if action_type is torch.float32:
+                    action_type = np.float32
             except AttributeError:
                 action_type = type(action)
             self.action_buffer = np.empty(self.max_length, dtype=action_type)
+
             self.reward_buffer = np.empty(self.max_length, dtype=np.float32)
             self.obs_buffer = np.empty(
                 (self.max_length, *obs.shape), dtype=obs.dtype)

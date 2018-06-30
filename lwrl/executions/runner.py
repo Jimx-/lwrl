@@ -17,7 +17,7 @@ class Runner:
               max_timestep=50000000,
               save_freq=100000,
               test_freq=1000,
-              log_freq=1000,
+              log_freq=1,
               verbose=True):
         vis = Visualizer()
         logger = logging.getLogger(__name__)
@@ -87,7 +87,7 @@ class Runner:
 
                 if verbose:
                     pbar.set_description(
-                        'Train: episode: {}, global steps: {}, episode score: {:.1f}, avg score: {:.2f}'.
+                        'Train: episode: {}, global steps: {}, episode score: {}, avg score: {}'.
                         format(total_episodes, t, episode_reward, avg_r))
 
                 if total_episodes % test_freq == 0:

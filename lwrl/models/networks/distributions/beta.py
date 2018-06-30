@@ -1,44 +1,63 @@
-from functools import reduce
-
-import numpy as np
 import torch
 import torch.nn as nn
-from torch.distributions.beta import Beta
+import torch.nn.functional as F
+from torch.distributions import Beta
 
+import numpy as np
+
+import lwrl.utils.th_helper as H
 from lwrl.models.networks.distributions import DistributionNetwork
 
 
 class BetaDistributionNetwork(DistributionNetwork):
-    """
-    Beta distribution for bounded continuous actions
-    """
-
-    def __init__(self, network_spec, shape, min_value, max_value):
-        self.min_value = min_value
-        self.max_value = max_value
+    def _create_distribution(self,
+                             feature_dim,
+                             shape=(),
+                             min_value=None,
+                             max_value=None):
         self.shape = shape
-        action_size = reduce(lambda x, y: x * y, shape, 1)
+        self.min_value = float(min_value)
+        self.max_value = float(max_value)
 
-        super().__init__(network_spec)
+        self.log_eps = np.log(1e-6)
 
-        self.alpha = nn.Linear(self.output_size()[0], action_size)
-        self.beta = nn.Linear(self.output_size()[0], action_size)
+        action_size = int(np.prod(shape))
+        # mu ~ Beta(mu | alpha, beta)
+        self.alpha = nn.Linear(feature_dim, action_size)
+        self.beta = nn.Linear(feature_dim, action_size)
 
-    def forward(self, x):
-        phi = super().forward(x)
-        alpha = self.alpha(phi).cpu()
-        beta = self.beta(phi).cpu()
-        distribution = Beta(concentration1=alpha, concentration0=beta)
-        return distribution
+    def _forward_distribution(self, phi):
+        alpha = self.alpha(phi).clamp(min=self.log_eps, max=-self.log_eps)
+        alpha = torch.log(torch.exp(alpha) + 1.) + 1.
 
-    def sample(self, distribution, deterministic):
+        beta = self.beta(phi).clamp(min=self.log_eps, max=-self.log_eps)
+        beta = torch.log(torch.exp(beta) + 1.) + 1.
+
+        alpha = alpha.view(-1, *self.shape)
+        beta = beta.view(-1, *self.shape)
+
+        #alpha_beta = torch.clamp(alpha + beta, min=1e-6)
+        dist = Beta(concentration0=beta.cpu(), concentration1=alpha.cpu())
+
+        return alpha, beta, dist
+
+    def sample(self, dist_params, deterministic):
+        alpha, _, dist = dist_params
+
         if deterministic:
-            sampled = distribution.mean
+            # use mean as action
+            samples = dist.mean
         else:
-            sampled = distribution.sample()
+            samples = dist.rsample(alpha.size())
 
-        result = self.min_value + (self.max_value - self.min_value) * sampled
-        return result[0]
+        actions = self.min_value + (self.max_value - self.min_value) * samples
+        return actions.view(alpha.size()).type(H.float_tensor)
 
-    def log_prob(self, distribution, action):
-        return distribution.log_prob(action).unsqueeze(-1)
+    def log_prob(self, dist_params, actions):
+        _, _, dist = dist_params
+        actions = (actions.data - self.min_value) / (
+            self.max_value - self.min_value)
+        with torch.no_grad():
+            actions = H.Variable(torch.clamp(actions, max=1 - 1e-6)).cpu()
+        log_prob = dist.log_prob(actions).type(H.float_tensor)
+        return log_prob

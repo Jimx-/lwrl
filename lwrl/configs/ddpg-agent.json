@@ -1,0 +1,46 @@
+{
+    "type": "ddpg_agent",
+
+    "optimizer": {
+        "type": "Adam",
+        "args": {
+            "lr": 0.0001
+        }
+    },
+
+    "exploration_schedule": {
+        "type": "linear",
+        "args": {
+            "initial": 0.0,
+            "final": 0.0,
+            "steps": 100000
+        }
+    },
+
+    "memory": {
+        "type": "sequential",
+        "args": {
+            "max_length": 1000000,
+            "history_length": 1
+        }
+    },
+
+    "critic_network_spec": {
+        "hidden1": 64,
+        "hidden2": 64
+    },
+
+    "critic_optimizer": {
+        "type": "Adam",
+        "args": {
+            "lr": 0.001
+        }
+    },
+
+    "history_length": 1,
+    "learning_starts": 100,
+    "train_freq": 1,
+    "update_target_freq": 1,
+    "batch_size": 64,
+    "discount_factor": 0.99
+}

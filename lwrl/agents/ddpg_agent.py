@@ -1,38 +1,41 @@
 from lwrl.agents import MemoryAgent
-from lwrl.models import QModel
-from lwrl.models.networks import DeepQNetwork, DuelingDQN
+from lwrl.models import DDPGModel
 
 
-class BaseQLearningAgent(MemoryAgent):
+class DDPGAgent(MemoryAgent):
     def __init__(self,
                  state_spec,
                  action_spec,
-                 network_cls,
                  network_spec,
                  optimizer,
                  memory,
                  exploration_schedule,
                  discount_factor,
-                 clip_error,
                  update_target_freq,
                  history_length,
                  learning_starts,
                  train_freq=1,
                  batch_size=32,
-                 double_q_learning=False,
                  saver_spec=None,
+                 critic_network_spec=None,
+                 critic_optimizer=None,
                  state_preprocess_pipeline=None):
 
-        self.network_cls = network_cls
         self.network_spec = network_spec
         self.exploration_schedule = exploration_schedule
         self.optimizer = optimizer
 
         self.global_step = 0
 
-        self.clip_error = clip_error
         self.update_target_freq = update_target_freq
-        self.double_q_learning = double_q_learning
+
+        if critic_network_spec is None:
+            critic_network_spec = network_spec
+        if critic_optimizer is None:
+            critic_optimizer = dict(type='Adam', args=dict(lr=1e-3, ))
+
+        self.critic_network_spec = critic_network_spec
+        self.critic_optimizer = critic_optimizer
 
         self.saver_spec = saver_spec
 
@@ -49,26 +52,15 @@ class BaseQLearningAgent(MemoryAgent):
             state_preprocess_pipeline=state_preprocess_pipeline)
 
     def init_model(self):
-        return QModel(
+        return DDPGModel(
             state_spec=self.state_spec,
             action_spec=self.action_spec,
-            network_cls=self.network_cls,
             network_spec=self.network_spec,
             exploration_schedule=self.exploration_schedule,
             optimizer=self.optimizer,
             saver_spec=self.saver_spec,
             discount_factor=self.discount_factor,
-            clip_error=self.clip_error,
             update_target_freq=self.update_target_freq,
-            double_q_learning=self.double_q_learning,
+            critic_network_spec=self.critic_network_spec,
+            critic_optimizer=self.critic_optimizer,
             state_preprocess_pipeline=self.state_preprocess_pipeline)
-
-
-class QLearningAgent(BaseQLearningAgent):
-    def __init__(self, *args, **kwargs):
-        super().__init__(network_cls=DeepQNetwork, *args, **kwargs)
-
-
-class DuelingQLearningAgent(BaseQLearningAgent):
-    def __init__(self, *args, **kwargs):
-        super().__init__(network_cls=DuelingDQN, *args, **kwargs)

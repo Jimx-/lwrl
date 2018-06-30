@@ -76,13 +76,13 @@ class Model:
 
         return action
 
-    def get_action(self, obs, random_action):
+    def get_action(self, obs, random_action, update):
         raise NotImplementedError
 
     def act(self, obs, random_action=True):
         obs = self.preprocess_state(
             torch.from_numpy(obs).type(H.float_tensor).unsqueeze(0))
-        action = self.get_action(obs, random_action)
+        action = self.get_action(obs, random_action, update=False)
 
         if self.exploration_schedule is not None:
             eps = self.exploration_schedule.value(self.timestep)

@@ -52,9 +52,13 @@ class DistributionModel(Model):
                     min_value=action_spec['min_value'],
                     max_value=action_spec['max_value'])
 
-    def get_action(self, obs, random_action):
-        with torch.no_grad():
+    def get_action(self, obs, random_action, update):
+        if not update:
+            with torch.no_grad():
+                dist_param = self.network(H.Variable(obs))
+        else:
             dist_param = self.network(H.Variable(obs))
+
         action = self.network.sample(
             dist_param,
             deterministic=(not random_action) or self.require_deterministic)
