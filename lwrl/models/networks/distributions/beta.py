@@ -27,22 +27,23 @@ class BetaDistributionNetwork(DistributionNetwork):
         self.beta = nn.Linear(feature_dim, action_size)
 
     def _forward_distribution(self, phi):
-        alpha = self.alpha(phi).clamp(min=self.log_eps, max=-self.log_eps)
+        alpha = self.alpha(phi)
+        alpha = alpha.clamp(min=self.log_eps, max=-self.log_eps)
         alpha = torch.log(torch.exp(alpha) + 1.) + 1.
 
-        beta = self.beta(phi).clamp(min=self.log_eps, max=-self.log_eps)
+        beta = self.beta(phi)
+        beta = beta.clamp(min=self.log_eps, max=-self.log_eps)
         beta = torch.log(torch.exp(beta) + 1.) + 1.
 
         alpha = alpha.view(-1, *self.shape)
         beta = beta.view(-1, *self.shape)
 
-        #alpha_beta = torch.clamp(alpha + beta, min=1e-6)
-        dist = Beta(concentration0=beta.cpu(), concentration1=alpha.cpu())
+        dist = Beta(concentration0=beta, concentration1=alpha)
 
         return alpha, beta, dist
 
     def sample(self, dist_params, deterministic):
-        alpha, _, dist = dist_params
+        alpha, beta, dist = dist_params
 
         if deterministic:
             # use mean as action
@@ -51,13 +52,12 @@ class BetaDistributionNetwork(DistributionNetwork):
             samples = dist.rsample(alpha.size())
 
         actions = self.min_value + (self.max_value - self.min_value) * samples
-        return actions.view(alpha.size()).type(H.float_tensor)
+        return actions.view(alpha.size())
 
     def log_prob(self, dist_params, actions):
         _, _, dist = dist_params
         actions = (actions.data - self.min_value) / (
             self.max_value - self.min_value)
-        with torch.no_grad():
-            actions = H.Variable(torch.clamp(actions, max=1 - 1e-6)).cpu()
-        log_prob = dist.log_prob(actions).type(H.float_tensor)
+        actions = torch.clamp(actions, max=1 - 1e-6)
+        log_prob = dist.log_prob(actions)
         return log_prob

@@ -18,10 +18,10 @@ LWRL currently supports OpenAI Gym style environments. These algorithms are prov
 
 - Deep Q-learning(DQN) - `dqn_agent`  [paper](https://www.cs.toronto.edu/%7Evmnih/docs/dqn.pdf)
 - Dueling DQN - `duel_dqn_agent`  [paper](https://arxiv.org/pdf/1511.06581.pdf)
-- Double DQN - `dqn_agent` with `double_q_learning=True`  [paper](https://arxiv.org/abs/1509.06461)
+- Double DQN - `dqn_agent` with `double_q_learning=True`  [paper](https://arxiv.org/abs/1509.06461.pdf)
 - Vanilla Policy Gradient(REINFORCE algorithm) - `vpg_agent`  [paper](http://www-anw.cs.umass.edu/%7Ebarto/courses/cs687/williams92simple.pdf)
 - Actor-critic models - use `baseline` model in `vpg_agent`
-
+- Deep deterministic policy gradient(DDPG) - `ddpg_agent`  [paper](https://arxiv.org/pdf/1509.02971.pdf)
 
 
 ## Getting started

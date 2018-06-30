@@ -12,6 +12,7 @@ class DDPGAgent(MemoryAgent):
                  exploration_schedule,
                  discount_factor,
                  update_target_freq,
+                 update_target_weight,
                  history_length,
                  learning_starts,
                  train_freq=1,
@@ -28,6 +29,7 @@ class DDPGAgent(MemoryAgent):
         self.global_step = 0
 
         self.update_target_freq = update_target_freq
+        self.update_target_weight = update_target_weight
 
         if critic_network_spec is None:
             critic_network_spec = network_spec
@@ -61,6 +63,7 @@ class DDPGAgent(MemoryAgent):
             saver_spec=self.saver_spec,
             discount_factor=self.discount_factor,
             update_target_freq=self.update_target_freq,
+            update_target_weight=self.update_target_weight,
             critic_network_spec=self.critic_network_spec,
             critic_optimizer=self.critic_optimizer,
             state_preprocess_pipeline=self.state_preprocess_pipeline)

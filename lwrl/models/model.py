@@ -68,11 +68,18 @@ class Model:
         return reduce(lambda x, y: y.process(x), self.state_preprocessing,
                       state)
 
-    def act_explore(self, action, eps, action_spec):
+    def act_explore(self, action, action_spec):
+        value = self.exploration_schedule.value(self.timestep,
+                                                self.action_spec)
         action_type = action_spec['type']
         if action_type == 'int':
-            if random.random() < eps:
+            if random.random() < value:
                 action = np.random.randint(self.action_spec['num_actions'])
+        elif action_type == 'float':
+            action += value
+            if 'min_value' in action_spec:
+                action = torch.clamp(action, float(action_spec['min_value']),
+                                     float(action_spec['max_value']))
 
         return action
 
@@ -84,12 +91,8 @@ class Model:
             torch.from_numpy(obs).type(H.float_tensor).unsqueeze(0))
         action = self.get_action(obs, random_action, update=False)
 
-        if self.exploration_schedule is not None:
-            eps = self.exploration_schedule.value(self.timestep)
-            if not random_action:
-                eps = 0.05
-
-            action = self.act_explore(action, eps, self.action_spec)
+        if self.exploration_schedule is not None and random_action:
+            action = self.act_explore(action, self.action_spec)
 
         return action, self.timestep
 

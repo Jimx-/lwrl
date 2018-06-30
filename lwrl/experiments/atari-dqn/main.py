@@ -37,7 +37,7 @@ if __name__ == '__main__':
         type='atari',
         id=args.env_id,
         visualize=args.visualize,
-        episodic_life=False,
+        #episodic_life=False,
         clip_reward=False)
 
     saver_spec = dict(save_dir=args.save_dir)

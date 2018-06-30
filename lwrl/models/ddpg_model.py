@@ -1,6 +1,7 @@
+import numpy as np
 import torch
-from torch import nn
 import torch.nn.functional as F
+from torch import nn
 
 import lwrl.utils.th_helper as H
 from lwrl.models import DistributionModel
@@ -16,18 +17,17 @@ class DDPGCriticModel(nn.Module):
         self.action_size = 1
 
         self.fc1 = nn.Linear(state_shape[0], hidden1)
-        self.bn1 = nn.BatchNorm1d(hidden1)
         self.fc2 = nn.Linear(hidden1 + self.action_size, hidden2)
-        self.bn2 = nn.BatchNorm1d(hidden2)
         self.fc3 = nn.Linear(hidden2, 1)
 
         nn.init.uniform_(self.fc3.weight)
+        nn.init.uniform_(self.fc3.bias)
 
     def forward(self, s, a):
-        a = a.view(-1, self.action_size).type(H.float_tensor)
-        out = F.relu(self.bn1(self.fc1(s)))
-        out = F.relu(self.bn2(self.fc2(torch.cat([out, a], 1))))
-        out = F.tanh(self.fc3(out))
+        a = a.view(-1, self.action_size)
+        out = F.relu(self.fc1(s))
+        out = F.relu(self.fc2(torch.cat([out, a], 1)))
+        out = self.fc3(out)
         return out.squeeze()
 
 
@@ -41,6 +41,7 @@ class DDPGModel(DistributionModel):
                  saver_spec,
                  discount_factor,
                  update_target_freq,
+                 update_target_weight,
                  critic_network_spec,
                  critic_optimizer,
                  state_preprocess_pipeline=None):
@@ -49,6 +50,7 @@ class DDPGModel(DistributionModel):
         self.critic_optimizer = critic_optimizer
 
         self.update_target_freq = update_target_freq
+        self.update_target_weight = update_target_weight
 
         super().__init__(
             state_spec=state_spec,
@@ -83,6 +85,10 @@ class DDPGModel(DistributionModel):
             'type']](self.critic_network.parameters(),
                      **self.critic_optimizer['args'])
 
+        self.target_network.load_state_dict(self.network.state_dict())
+        self.target_critic_network.load_state_dict(
+            self.critic_network.state_dict())
+
     def get_target_network_action(self, obs, random_action):
         with torch.no_grad():
             dist_param = self.target_network(H.Variable(obs))
@@ -96,6 +102,13 @@ class DDPGModel(DistributionModel):
         q_value = self.target_critic_network(obs_batch, action_batch)
 
         return reward_batch + neg_done_mask * self.discount_factor * q_value
+
+    def update_target_model(self, target_model, model):
+        for target_param, param in zip(target_model.parameters(),
+                                       model.parameters()):
+            target_param.data.copy_(
+                (1 - self.update_target_weight) * param.data +
+                self.update_target_weight * target_param.data)
 
     def update(self, obs_batch, action_batch, reward_batch, next_obs_batch,
                done_mask):
@@ -125,7 +138,8 @@ class DDPGModel(DistributionModel):
             neg_done_mask).detach()
 
         q_values = self.critic_network(obs_batch, action_batch)
-        critic_loss = (q_values - next_q_values).pow(2).mean()
+        #critic_loss = (q_values - next_q_values).pow(2).mean()
+        critic_loss = F.mse_loss(q_values, next_q_values)
 
         # update critic
         self.critic_network.zero_grad()
@@ -135,9 +149,8 @@ class DDPGModel(DistributionModel):
         # update actor
         predicted_actions = self.get_action(
             obs_batch, random_action=False, update=True)
-        actor_loss = -self.critic_network(obs_batch, predicted_actions)
-        actor_loss = actor_loss.mean()
-        self.network.zero_grad
+        actor_loss = -self.critic_network(obs_batch, predicted_actions).mean()
+        self.network.zero_grad()
         actor_loss.backward()
         self.optimizer.step()
 
@@ -145,6 +158,6 @@ class DDPGModel(DistributionModel):
 
         # target networks <- online networks
         if self.num_updates % self.update_target_freq == 0:
-            self.target_network.load_state_dict(self.network.state_dict())
-            self.target_critic_network.load_state_dict(
-                self.critic_network.state_dict())
+            self.update_target_model(self.target_network, self.network)
+            self.update_target_model(self.target_critic_network,
+                                     self.critic_network)

@@ -15,7 +15,7 @@ class Runner:
 
     def train(self,
               max_timestep=50000000,
-              save_freq=100000,
+              save_freq=1000,
               test_freq=1000,
               log_freq=1,
               verbose=True):
