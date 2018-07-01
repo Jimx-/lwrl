@@ -2,9 +2,9 @@
 
 Lightweight deep reinforcement learning library written with PyTorch
 
-| Breakout(DQN)                                                                                         | Cartpole(Vanilla Policy Gradient)                                                  |
-|:-----------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------:|
-| ![breakout-dqn](https://thumbs.gfycat.com/AnchoredScornfulAustraliansilkyterrier-size_restricted.gif) | ![cartpole-vpg](https://thumbs.gfycat.com/WelllitFluffyBadger-size_restricted.gif) |
+| Breakout(DQN)                                                                                         | Pendulum-v0(DDPG)                                                                    |
+|:-----------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------:|
+| ![breakout-dqn](https://thumbs.gfycat.com/AnchoredScornfulAustraliansilkyterrier-size_restricted.gif) | ![pendulum-ddpg](https://thumbs.gfycat.com/SeveralCraftyGharial-size_restricted.gif) |
 
 LWRL aims to provide a configurable and modular reinforcement learning library. With LWRL, enviroments, agents and models are encapsulated in individual modules that can be combined together. It is possible to experiment with new models and network architectures quickly by replacing parts of the application with the new modules. Also, everything can be easily configurable by providing a config file in JSON format. The goal of LWRL is to provide a toolbox that intergrates deep reinforcement learning algorithms and can be used to create reinforment learning applications quickly.
 

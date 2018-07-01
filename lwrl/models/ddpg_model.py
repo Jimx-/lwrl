@@ -20,8 +20,8 @@ class DDPGCriticModel(nn.Module):
         self.fc2 = nn.Linear(hidden1 + self.action_size, hidden2)
         self.fc3 = nn.Linear(hidden2, 1)
 
-        nn.init.uniform_(self.fc3.weight)
-        nn.init.uniform_(self.fc3.bias)
+        #nn.init.uniform_(self.fc3.weight)
+        #nn.init.uniform_(self.fc3.bias)
 
     def forward(self, s, a):
         a = a.view(-1, self.action_size)
@@ -139,7 +139,7 @@ class DDPGModel(DistributionModel):
 
         q_values = self.critic_network(obs_batch, action_batch)
         #critic_loss = (q_values - next_q_values).pow(2).mean()
-        critic_loss = F.mse_loss(q_values, next_q_values)
+        critic_loss = F.smooth_l1_loss(q_values, next_q_values)
 
         # update critic
         self.critic_network.zero_grad()
@@ -161,3 +161,27 @@ class DDPGModel(DistributionModel):
             self.update_target_model(self.target_network, self.network)
             self.update_target_model(self.target_critic_network,
                                      self.critic_network)
+
+    def save(self, timestep):
+        self.saver.save(
+            {
+                'global_step': timestep,
+                'network': self.network.state_dict(),
+                'target_network': self.target_network.state_dict(),
+                'critic_network': self.critic_network.state_dict(),
+                'target_critic_network':
+                self.target_critic_network.state_dict(),
+                'optimizer': self.optimizer.state_dict(),
+                'critic_optimizer': self.critic_optimizer.state_dict(),
+            }, timestep)
+
+    def restore(self):
+        checkpoint = self.saver.restore()
+        self.global_step = checkpoint['global_step']
+        self.network.load_state_dict(checkpoint['network'])
+        self.target_network.load_state_dict(checkpoint['target_network'])
+        self.critic_network.load_state_dict(checkpoint['critic_network'])
+        self.target_critic_network.load_state_dict(
+            checkpoint['target_critic_network'])
+        self.optimizer.load_state_dict(checkpoint['optimizer'])
+        self.critic_optimizer.load_state_dict(checkpoint['critic_optimizer'])
