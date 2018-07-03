@@ -17,7 +17,7 @@ class Runner:
               max_timestep=50000000,
               save_freq=10000,
               test_freq=1000,
-              log_freq=1,
+              log_freq=100,
               verbose=True):
         vis = Visualizer()
         logger = logging.getLogger(__name__)

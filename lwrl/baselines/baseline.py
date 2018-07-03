@@ -1,4 +1,4 @@
-import torch
+import torch.nn.functional as F
 
 
 class Baseline:
@@ -11,5 +11,4 @@ class Baseline:
 
     def loss(self, obs_batch, reward):
         prediction = self.predict(obs_batch)
-        delta = prediction - reward
-        return torch.norm(delta, p=2, dim=-1)
+        return F.mse_loss(prediction, reward)

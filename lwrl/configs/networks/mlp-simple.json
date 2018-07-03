@@ -1,7 +1,7 @@
 [
   {
     "type": "dense",
-    "in_features": 3,
+    "in_features": 4,
     "out_features": 64,
     "activation": "relu"
   }

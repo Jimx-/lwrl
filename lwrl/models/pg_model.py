@@ -17,12 +17,16 @@ class PGModel(DistributionModel):
                  state_preprocess_pipeline=None,
                  baseline_mode=None,
                  baseline_spec=None,
-                 baseline_optimizer=None):
+                 baseline_optimizer=None,
+                 subsampling_fraction=None,
+                 optimization_steps=1):
         self.network_spec = network_spec
 
         self.baseline_mode = baseline_mode
         self.baseline_spec = baseline_spec
         self.baseline_optimizer_spec = baseline_optimizer
+        self.subsampling_fraction = subsampling_fraction
+        self.optimization_steps = optimization_steps
 
         super().__init__(
             state_spec=state_spec,
@@ -96,12 +100,17 @@ class PGModel(DistributionModel):
             estimated_rewards = estimated_rewards.detach()
 
         # optimize the actor model
-        loss = self.calculate_loss(obs_batch, action_batch, estimated_rewards,
-                                   next_obs_batch, neg_done_mask)
+        reference = self.calculate_reference(obs_batch, action_batch,
+                                             estimated_rewards, next_obs_batch,
+                                             neg_done_mask)
 
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
+        for _ in range(self.optimization_steps):
+            loss = self.calculate_loss(obs_batch, action_batch,
+                                       estimated_rewards, next_obs_batch,
+                                       neg_done_mask, reference)
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
 
         # optimize the critic model
         if self.baseline_optimizer is not None:
@@ -115,6 +124,15 @@ class PGModel(DistributionModel):
 
         self.num_updates += 1
 
-    def calculate_loss(self, obs_batch, action_batch, reward_batch,
-                       next_obs_batch, neg_done_mask):
+    def calculate_loss(self,
+                       obs_batch,
+                       action_batch,
+                       reward_batch,
+                       next_obs_batch,
+                       neg_done_mask,
+                       reference=None):
         raise NotImplementedError
+
+    def calculate_reference(self, obs_batch, action_batch, reward_batch,
+                            next_obs_batch, neg_done_mask):
+        return None

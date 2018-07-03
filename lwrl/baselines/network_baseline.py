@@ -1,4 +1,4 @@
-import torch.nn as nn
+from torch import nn
 
 from lwrl.baselines import Baseline
 from lwrl.models.networks import Network

@@ -4,4 +4,5 @@ from lwrl.models.q_model import QModel
 from lwrl.models.nstep_q_model import NStepQModel
 from lwrl.models.pg_model import PGModel
 from lwrl.models.pg_log_prob_model import PGLogProbModel
+from lwrl.models.pg_prob_ratio_model import PGProbRatioModel
 from lwrl.models.ddpg_model import DDPGModel

@@ -16,13 +16,13 @@ LWRL is built on top of [PyTorch](https://pytorch.org/) deep learning framework.
 
 LWRL currently supports OpenAI Gym style environments. These algorithms are provided by the library:
 
-- Deep Q-learning(DQN) - `dqn_agent`  [paper](https://www.cs.toronto.edu/%7Evmnih/docs/dqn.pdf)
-- Dueling DQN - `duel_dqn_agent`  [paper](https://arxiv.org/pdf/1511.06581.pdf)
-- Double DQN - `dqn_agent` with `double_q_learning=True`  [paper](https://arxiv.org/abs/1509.06461.pdf)
-- Vanilla Policy Gradient(REINFORCE algorithm) - `vpg_agent`  [paper](http://www-anw.cs.umass.edu/%7Ebarto/courses/cs687/williams92simple.pdf)
+- Deep Q-learning (DQN) - `dqn_agent`  [paper](https://www.cs.toronto.edu/%7Evmnih/docs/dqn.pdf)
+- Dueling DQN - `duel_dqn_agent`  [paper](https://arxiv.org/pdf/1511.06581)
+- Double DQN - `dqn_agent` with `double_q_learning=True`  [paper](https://arxiv.org/abs/1509.06461)
+- Vanilla Policy Gradient (REINFORCE algorithm) - `vpg_agent`  [paper](http://www-anw.cs.umass.edu/%7Ebarto/courses/cs687/williams92simple.pdf)
 - Actor-critic models - use `baseline` model in `vpg_agent`
-- Deep deterministic policy gradient(DDPG) - `ddpg_agent`  [paper](https://arxiv.org/pdf/1509.02971.pdf)
-
+- Deep Deterministic Policy Gradient (DDPG) - `ddpg_agent`  [paper](https://arxiv.org/pdf/1509.02971)
+- Proximal Policy Optimization (PPO) - `ppo_agent`  [paper](https://arxiv.org/abs/1707.06347)
 
 ## Getting started
 

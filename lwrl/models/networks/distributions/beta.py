@@ -49,7 +49,7 @@ class BetaDistributionNetwork(DistributionNetwork):
             # use mean as action
             samples = dist.mean
         else:
-            samples = dist.rsample(alpha.size())
+            samples = dist.sample(alpha.size())
 
         actions = self.min_value + (self.max_value - self.min_value) * samples
         return actions.view(alpha.size())

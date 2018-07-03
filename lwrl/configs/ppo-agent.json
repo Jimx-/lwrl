@@ -1,0 +1,31 @@
+{
+    "type": "ppo_agent",
+
+    "optimizer": {
+        "type": "Adam",
+        "args": {
+            "lr": 0.01
+        }
+    },
+
+    "history_length": 1,
+    "discount_factor": 0.99,
+    "batch_size": 5000,
+
+    "baseline_mode": "states",
+    "baseline_spec": {
+        "type": "mlp",
+        "size": [4, 32]
+    },
+    "baseline_optimizer": {
+        "type": "Adam",
+        "args": {
+            "lr": 0.01
+        }
+    },
+
+    "subsampling_fraction": 0.1,
+    "optimization_steps": 50,
+
+    "likelihood_ratio_clipping": 0.2
+}

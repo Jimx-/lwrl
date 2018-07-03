@@ -6,6 +6,7 @@ from lwrl.agents.ql_agent import QLearningAgent, DuelingQLearningAgent
 from lwrl.agents.nstep_ql_agent import NStepQLearningAgent
 from lwrl.agents.vpg_agent import VPGAgent
 from lwrl.agents.ddpg_agent import DDPGAgent
+from lwrl.agents.ppo_agent import PPOAgent
 
 agent_dict = dict(
     dqn_agent=QLearningAgent,
@@ -13,6 +14,7 @@ agent_dict = dict(
     nstep_dqn_agent=NStepQLearningAgent,
     vpg_agent=VPGAgent,
     ddpg_agent=DDPGAgent,
+    ppo_agent=PPOAgent,
 )
 
 
