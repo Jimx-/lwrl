@@ -77,8 +77,16 @@ class QModel(Model):
         # minimize (Q(s, a) - (r + gamma * max Q(s', a'; w'))^2
         q_values = self.q_network(obs_batch).gather(
             1, action_batch.unsqueeze(1))  # Q(s, a; w)
-        next_max_q_values = self.target_network(next_obs_batch).detach().max(
-            1)[0]  # max Q(s', a'; w')
+
+        if self.double_q_learning:
+            _, next_state_actions = self.q_network(next_obs_batch).max(
+                1, keepdim=True)
+            next_max_q_values = self.target_network(next_obs_batch).gather(
+                1, next_state_actions).squeeze().detach()
+        else:
+            next_max_q_values = self.target_network(
+                next_obs_batch).detach().max(1)[0]  # max Q(s', a'; w')
+
         td_error = self.calculate_td_error(q_values, next_max_q_values,
                                            reward_batch, neg_done_mask)
         clipped_td_error = td_error.clamp(-self.clip_error, self.clip_error)
