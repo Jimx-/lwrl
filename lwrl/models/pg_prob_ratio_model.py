@@ -15,12 +15,7 @@ class PGProbRatioModel(PGModel):
                  baseline_mode=None,
                  baseline_spec=None,
                  baseline_optimizer=None,
-                 subsampling_fraction=0.1,
-                 optimization_steps=50,
                  likelihood_ratio_clipping=None):
-        self.subsampling_fraction = subsampling_fraction
-        self.optimization_steps = optimization_steps
-
         self.likelihood_ratio_clipping = likelihood_ratio_clipping
 
         super().__init__(
@@ -34,9 +29,7 @@ class PGProbRatioModel(PGModel):
             state_preprocess_pipeline=state_preprocess_pipeline,
             baseline_mode=baseline_mode,
             baseline_spec=baseline_spec,
-            baseline_optimizer=baseline_optimizer,
-            subsampling_fraction=subsampling_fraction,
-            optimization_steps=optimization_steps)
+            baseline_optimizer=baseline_optimizer)
 
     def calculate_reference(self, obs_batch, action_batch, reward_batch,
                             next_obs_batch, neg_done_mask):
@@ -52,7 +45,6 @@ class PGProbRatioModel(PGModel):
                        next_obs_batch,
                        neg_done_mask,
                        reference=None):
-
         dist_params = self.network(obs_batch)
         log_prob = self.network.log_prob(dist_params, action_batch)
 

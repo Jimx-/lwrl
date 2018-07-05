@@ -41,7 +41,7 @@
     "learning_starts": 100,
     "train_freq": 1,
     "update_target_freq": 1,
-    "update_target_weight": 0.99,
+    "update_target_weight": 0.999,
     "batch_size": 64,
     "discount_factor": 0.99
 }

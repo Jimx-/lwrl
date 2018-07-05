@@ -11,7 +11,7 @@ class PPOAgent(BatchAgent):
                  state_spec,
                  action_spec,
                  network_spec,
-                 optimizer,
+                 step_optimizer,
                  discount_factor,
                  history_length,
                  batch_size=1000,
@@ -27,13 +27,21 @@ class PPOAgent(BatchAgent):
                  likelihood_ratio_clipping=None):
         self.network_spec = network_spec
         self.exploration_schedule = exploration_schedule
-        self.optimizer = optimizer
         self.baseline_mode = baseline_mode
         self.baseline_spec = baseline_spec
         self.baseline_optimizer = baseline_optimizer
-        self.subsampling_fraction = subsampling_fraction
-        self.optimization_steps = optimization_steps
         self.likelihood_ratio_clipping = likelihood_ratio_clipping
+
+        if step_optimizer is None:
+            step_optimizer = dict(type='Adam', args=dict(lr=1e-3, ))
+
+        optimizer = dict(
+            type='multistep',
+            args=dict(
+                optimizer=step_optimizer,
+                num_steps=optimization_steps,
+            ))
+        self.optimizer = optimizer
 
         self.global_step = 0
 
@@ -62,6 +70,4 @@ class PPOAgent(BatchAgent):
             baseline_mode=self.baseline_mode,
             baseline_spec=self.baseline_spec,
             baseline_optimizer=self.baseline_optimizer,
-            subsampling_fraction=self.subsampling_fraction,
-            optimization_steps=self.optimization_steps,
             likelihood_ratio_clipping=self.likelihood_ratio_clipping)

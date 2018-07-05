@@ -8,6 +8,7 @@ import lwrl.utils.th_helper as H
 from lwrl.utils import schedule
 from lwrl.utils.preprocess import get_preprocessor
 from lwrl.utils.saver import Saver
+from lwrl.optimizers import optimizer_factory
 
 
 class Model:
@@ -38,7 +39,7 @@ class Model:
 
         if type(optimizer) is dict:
             self.optimizer_builder = lambda params: \
-                H.optimizer_dict[optimizer['type']](params, **optimizer['args'])
+                optimizer_factory(optimizer['type'], params, **optimizer['args'])
         else:
             self.optimizer_builder = lambda params: optimizer
 

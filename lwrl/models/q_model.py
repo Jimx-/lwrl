@@ -92,10 +92,8 @@ class QModel(Model):
         clipped_td_error = td_error.clamp(-self.clip_error, self.clip_error)
         grad = clipped_td_error * -1.0
 
-        self.optimizer.zero_grad()
-        q_values.backward(grad.data)
+        self.optimizer.step(q_values, grad=grad.data)
 
-        self.optimizer.step()
         self.num_updates += 1
 
         # target networks <- online networks
@@ -113,7 +111,6 @@ class QModel(Model):
             'global_step': timestep,
             'q_network': self.q_network.state_dict(),
             'target_network': self.target_network.state_dict(),
-            'optimizer': self.optimizer.state_dict(),
         }, timestep)
 
     def restore(self):
@@ -121,4 +118,3 @@ class QModel(Model):
         self.global_step = checkpoint['global_step']
         self.q_network.load_state_dict(checkpoint['q_network'])
         self.target_network.load_state_dict(checkpoint['target_network'])
-        self.optimizer.load_state_dict(checkpoint['optimizer'])

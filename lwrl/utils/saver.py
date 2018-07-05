@@ -22,9 +22,7 @@ class Saver:
         meta_file = self._get_meta_path()
 
         with open(meta_file, 'w') as fout:
-            fout.write(json.dumps({
-                'last_checkpoints': self.last_checkpoints
-            }))
+            fout.write(json.dumps({'last_checkpoints': self.last_checkpoints}))
 
     def _restore_meta(self):
         meta_file = self._get_meta_path()
@@ -42,7 +40,8 @@ class Saver:
 
         if len(self.last_checkpoints) > self.max_to_keep:
             del_ckpt = self.last_checkpoints.pop(0)
-            os.remove(os.path.join(self.save_dir, del_ckpt))
+            if os.path.exists(os.path.join(self.save_dir, del_ckpt)):
+                os.remove(os.path.join(self.save_dir, del_ckpt))
 
         ckpt_path = os.path.join(self.save_dir, ckpt_name)
         torch.save(save_dict, ckpt_path)

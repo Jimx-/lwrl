@@ -11,4 +11,4 @@ class Baseline:
 
     def loss(self, obs_batch, reward):
         prediction = self.predict(obs_batch)
-        return F.mse_loss(prediction, reward)
+        return (prediction - reward).pow(2).mean()

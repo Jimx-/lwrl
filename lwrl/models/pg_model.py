@@ -3,6 +3,7 @@ import torch
 import lwrl.utils.th_helper as H
 from lwrl.models import DistributionModel
 from lwrl.baselines import baseline_factory
+from lwrl.optimizers import optimizer_factory
 
 
 class PGModel(DistributionModel):
@@ -17,16 +18,12 @@ class PGModel(DistributionModel):
                  state_preprocess_pipeline=None,
                  baseline_mode=None,
                  baseline_spec=None,
-                 baseline_optimizer=None,
-                 subsampling_fraction=None,
-                 optimization_steps=1):
+                 baseline_optimizer=None):
         self.network_spec = network_spec
 
         self.baseline_mode = baseline_mode
         self.baseline_spec = baseline_spec
         self.baseline_optimizer_spec = baseline_optimizer
-        self.subsampling_fraction = subsampling_fraction
-        self.optimization_steps = optimization_steps
 
         super().__init__(
             state_spec=state_spec,
@@ -48,10 +45,10 @@ class PGModel(DistributionModel):
 
         self.baseline_optimizer = None
         if self.baseline_optimizer_spec is not None:
-            self.baseline_optimizer = H.optimizer_dict[
-                self.baseline_optimizer_spec['type']](
-                    self.baseline.parameters(),
-                    **self.baseline_optimizer_spec['args'])
+            self.baseline_optimizer = optimizer_factory(
+                self.baseline_optimizer_spec['type'],
+                self.baseline.parameters(),
+                **self.baseline_optimizer_spec['args'])
 
     def calculate_cumulative_rewards(self, rewards, neg_done_mask,
                                      discount_factor):
@@ -100,17 +97,18 @@ class PGModel(DistributionModel):
             estimated_rewards = estimated_rewards.detach()
 
         # optimize the actor model
-        reference = self.calculate_reference(obs_batch, action_batch,
-                                             estimated_rewards, next_obs_batch,
-                                             neg_done_mask)
+        loss_arguments = dict(
+            obs_batch=obs_batch,
+            action_batch=action_batch,
+            reward_batch=estimated_rewards,
+            next_obs_batch=next_obs_batch,
+            neg_done_mask=neg_done_mask,
+        )
 
-        for _ in range(self.optimization_steps):
-            loss = self.calculate_loss(obs_batch, action_batch,
-                                       estimated_rewards, next_obs_batch,
-                                       neg_done_mask, reference)
-            self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.step()
+        self.optimizer.step(
+            self.calculate_loss,
+            loss_arguments,
+            fn_reference=self.calculate_reference)
 
         # optimize the critic model
         if self.baseline_optimizer is not None:
@@ -118,9 +116,7 @@ class PGModel(DistributionModel):
                 reward_batch, neg_done_mask, self.discount_factor)
             baseline_loss = self.baseline.loss(obs_batch, cumulative_rewards)
 
-            self.baseline_optimizer.zero_grad()
-            baseline_loss.backward()
-            self.baseline_optimizer.step()
+            self.baseline_optimizer.step(baseline_loss)
 
         self.num_updates += 1
 

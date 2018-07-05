@@ -1,7 +1,7 @@
 {
     "type": "ppo_agent",
 
-    "optimizer": {
+    "step_optimizer": {
         "type": "Adam",
         "args": {
             "lr": 0.01

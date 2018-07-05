@@ -5,6 +5,7 @@ from torch import nn
 
 import lwrl.utils.th_helper as H
 from lwrl.models import DistributionModel
+from lwrl.optimizers import optimizer_factory
 
 
 class DDPGCriticModel(nn.Module):
@@ -81,9 +82,9 @@ class DDPGModel(DistributionModel):
             self.action_spec,
             hidden1=hidden1,
             hidden2=hidden2).type(H.float_tensor)
-        self.critic_optimizer = H.optimizer_dict[self.critic_optimizer[
-            'type']](self.critic_network.parameters(),
-                     **self.critic_optimizer['args'])
+        self.critic_optimizer = optimizer_factory(
+            self.critic_optimizer['type'], self.critic_network.parameters(),
+            **self.critic_optimizer['args'])
 
         self.target_network.load_state_dict(self.network.state_dict())
         self.target_critic_network.load_state_dict(
@@ -142,17 +143,13 @@ class DDPGModel(DistributionModel):
         critic_loss = F.smooth_l1_loss(q_values, next_q_values)
 
         # update critic
-        self.critic_network.zero_grad()
-        critic_loss.backward()
-        self.critic_optimizer.step()
+        self.critic_optimizer.step(critic_loss)
 
         # update actor
         predicted_actions = self.get_action(
             obs_batch, random_action=False, update=True)
         actor_loss = -self.critic_network(obs_batch, predicted_actions).mean()
-        self.network.zero_grad()
-        actor_loss.backward()
-        self.optimizer.step()
+        self.optimizer.step(actor_loss)
 
         self.num_updates += 1
 
@@ -171,8 +168,6 @@ class DDPGModel(DistributionModel):
                 'critic_network': self.critic_network.state_dict(),
                 'target_critic_network':
                 self.target_critic_network.state_dict(),
-                'optimizer': self.optimizer.state_dict(),
-                'critic_optimizer': self.critic_optimizer.state_dict(),
             }, timestep)
 
     def restore(self):
@@ -183,5 +178,3 @@ class DDPGModel(DistributionModel):
         self.critic_network.load_state_dict(checkpoint['critic_network'])
         self.target_critic_network.load_state_dict(
             checkpoint['target_critic_network'])
-        self.optimizer.load_state_dict(checkpoint['optimizer'])
-        self.critic_optimizer.load_state_dict(checkpoint['critic_optimizer'])
