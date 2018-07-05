@@ -24,6 +24,8 @@ LWRL currently supports OpenAI Gym style environments. These algorithms are prov
 - Deep Deterministic Policy Gradient (DDPG) - `ddpg_agent`  [paper](https://arxiv.org/pdf/1509.02971)
 - Proximal Policy Optimization (PPO) - `ppo_agent`  [paper](https://arxiv.org/abs/1707.06347)
 
+- Generalized advantage estimation - `gae_lambda`  [paper](https://arxiv.org/abs/1506.02438)
+
 ## Getting started
 
 ### Installation

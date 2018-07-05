@@ -22,7 +22,7 @@ class PPOAgent(BatchAgent):
                  baseline_mode=None,
                  baseline_spec=None,
                  baseline_optimizer=None,
-                 subsampling_fraction=0.1,
+                 gae_lambda=None,
                  optimization_steps=50,
                  likelihood_ratio_clipping=None):
         self.network_spec = network_spec
@@ -30,6 +30,7 @@ class PPOAgent(BatchAgent):
         self.baseline_mode = baseline_mode
         self.baseline_spec = baseline_spec
         self.baseline_optimizer = baseline_optimizer
+        self.gae_lambda = gae_lambda
         self.likelihood_ratio_clipping = likelihood_ratio_clipping
 
         if step_optimizer is None:
@@ -70,4 +71,5 @@ class PPOAgent(BatchAgent):
             baseline_mode=self.baseline_mode,
             baseline_spec=self.baseline_spec,
             baseline_optimizer=self.baseline_optimizer,
+            gae_lambda=self.gae_lambda,
             likelihood_ratio_clipping=self.likelihood_ratio_clipping)

@@ -18,12 +18,17 @@ class PGModel(DistributionModel):
                  state_preprocess_pipeline=None,
                  baseline_mode=None,
                  baseline_spec=None,
-                 baseline_optimizer=None):
+                 baseline_optimizer=None,
+                 gae_lambda=None):
         self.network_spec = network_spec
 
         self.baseline_mode = baseline_mode
         self.baseline_spec = baseline_spec
         self.baseline_optimizer_spec = baseline_optimizer
+
+        assert gae_lambda is None or (0.0 <= gae_lambda <= 1.0
+                                      and baseline_mode is not None)
+        self.gae_lambda = gae_lambda
 
         super().__init__(
             state_spec=state_spec,
@@ -68,9 +73,20 @@ class PGModel(DistributionModel):
         elif self.baseline_mode == 'states':
             state_value = self.baseline.predict(obs_batch)
 
-        rewards = self.calculate_cumulative_rewards(rewards, neg_done_mask,
-                                                    self.discount_factor)
-        advantage = rewards - state_value
+        if self.gae_lambda is None:
+            rewards = self.calculate_cumulative_rewards(
+                rewards, neg_done_mask, self.discount_factor)
+            advantage = rewards - state_value
+        else:
+            next_state_value = torch.zeros_like(state_value)
+            next_state_value[:-1] = next_state_value[1:]
+            next_state_value[-1] = 0.0
+            next_state_value = next_state_value * neg_done_mask
+            td_residual = rewards + self.discount_factor * next_state_value - state_value
+            gae_discount = self.discount_factor * self.gae_lambda
+            advantage = self.calculate_cumulative_rewards(
+                td_residual, neg_done_mask, gae_discount)
+
         return advantage
 
     def update(self, obs_batch, action_batch, reward_batch, next_obs_batch,

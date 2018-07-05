@@ -15,7 +15,7 @@
     "baseline_mode": "states",
     "baseline_spec": {
         "type": "mlp",
-        "size": [4, 32]
+        "size": [3, 32]
     },
     "baseline_optimizer": {
         "type": "Adam",
@@ -24,7 +24,7 @@
         }
     },
 
-    "subsampling_fraction": 0.1,
+    "gae_lambda": null,
     "optimization_steps": 50,
 
     "likelihood_ratio_clipping": 0.2
