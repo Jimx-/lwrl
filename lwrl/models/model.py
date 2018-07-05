@@ -92,6 +92,9 @@ class Model:
             torch.from_numpy(obs).type(H.float_tensor).unsqueeze(0))
         action = self.get_action(obs, random_action, update=False)
 
+        if self.action_spec['type'] == 'int':
+            action = action.item()
+
         if self.exploration_schedule is not None and random_action:
             action = self.act_explore(action, self.action_spec)
 

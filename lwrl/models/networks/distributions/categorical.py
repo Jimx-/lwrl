@@ -41,7 +41,7 @@ class CategoricalDistributionNetwork(DistributionNetwork):
             # sample from the distribution
             actions = dist.sample(self.shape)
 
-        return actions.item()
+        return actions
 
     def log_prob(self, dist_params, actions):
         _, _, _, dist = dist_params
