@@ -1,10 +1,5 @@
-import torch
 import torch.nn as nn
-
-import numpy as np
-
 from lwrl.models.networks import Network
-import lwrl.utils.th_helper as H
 
 
 class DistributionNetwork(nn.Module):
@@ -28,4 +23,7 @@ class DistributionNetwork(nn.Module):
         raise NotImplementedError
 
     def log_prob(self, dist_params, actions):
+        raise NotImplementedError
+
+    def entropy(self, dist_params):
         raise NotImplementedError

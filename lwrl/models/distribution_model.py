@@ -19,9 +19,13 @@ class DistributionModel(Model):
             saver_spec=None,
             discount_factor=0.99,
             state_preprocess_pipeline=None,
+            entropy_regularization=None,
     ):
         self.network_spec = network_spec
         self.require_deterministic = require_deterministic
+
+        assert entropy_regularization is None or entropy_regularization >= 0.0
+        self.entropy_regularization = entropy_regularization
 
         super().__init__(
             state_spec,
@@ -63,6 +67,13 @@ class DistributionModel(Model):
             dist_param,
             deterministic=(not random_action) or self.require_deterministic)
         return action
+
+    def regularization_loss(self, obs_batch):
+        dist_params = self.network(obs_batch)
+        entropy = self.network.entropy(dist_params)
+        entropy = torch.mean(entropy)
+
+        return -self.entropy_regularization * entropy
 
     def save(self, timestep):
         pass

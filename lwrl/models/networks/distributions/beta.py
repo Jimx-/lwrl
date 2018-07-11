@@ -33,6 +33,8 @@ class BetaDistributionNetwork(DistributionNetwork):
 
         #alpha = alpha.view(-1, *self.shape)
         #beta = beta.view(-1, *self.shape)
+        beta.squeeze_()
+        alpha.squeeze_()
 
         dist = Beta(concentration0=beta, concentration1=alpha)
         return alpha, beta, dist
@@ -53,9 +55,12 @@ class BetaDistributionNetwork(DistributionNetwork):
         alpha, _, dist = dist_params
         actions = (actions - self.min_value) / (
             self.max_value - self.min_value)
-        actions = torch.clamp(actions, max=1 - 1e-6)
-        actions = actions.view(alpha.size())
+        # actions = torch.clamp(actions, max=1 - 1e-6)
 
         log_prob = dist.log_prob(actions)
 
-        return log_prob.squeeze()
+        return log_prob
+
+    def entropy(self, dist_params):
+        _, _, dist = dist_params
+        return dist.entropy()

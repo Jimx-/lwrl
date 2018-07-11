@@ -46,3 +46,7 @@ class CategoricalDistributionNetwork(DistributionNetwork):
     def log_prob(self, dist_params, actions):
         _, _, _, dist = dist_params
         return dist.log_prob(actions)
+
+    def entropy(self, dist_params):
+        _, _, _, dist = dist_params
+        return dist.entropy()

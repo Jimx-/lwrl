@@ -30,6 +30,7 @@
         }
     },
 
+    "entropy_regularization": 0.01,
     "gae_lambda": null,
     "optimization_steps": 50,
 

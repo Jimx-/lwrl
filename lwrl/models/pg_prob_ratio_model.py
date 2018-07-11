@@ -15,6 +15,7 @@ class PGProbRatioModel(PGModel):
                  baseline_mode=None,
                  baseline_spec=None,
                  baseline_optimizer=None,
+                 entropy_regularization=None,
                  gae_lambda=None,
                  likelihood_ratio_clipping=None):
         self.likelihood_ratio_clipping = likelihood_ratio_clipping
@@ -31,6 +32,7 @@ class PGProbRatioModel(PGModel):
             baseline_mode=baseline_mode,
             baseline_spec=baseline_spec,
             baseline_optimizer=baseline_optimizer,
+            entropy_regularization=entropy_regularization,
             gae_lambda=gae_lambda)
 
     def calculate_reference(self, obs_batch, action_batch, reward_batch,

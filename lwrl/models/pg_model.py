@@ -19,6 +19,7 @@ class PGModel(DistributionModel):
                  baseline_mode=None,
                  baseline_spec=None,
                  baseline_optimizer=None,
+                 entropy_regularization=None,
                  gae_lambda=None):
         self.network_spec = network_spec
 
@@ -39,7 +40,8 @@ class PGModel(DistributionModel):
             optimizer=optimizer,
             saver_spec=saver_spec,
             discount_factor=discount_factor,
-            state_preprocess_pipeline=state_preprocess_pipeline)
+            state_preprocess_pipeline=state_preprocess_pipeline,
+            entropy_regularization=entropy_regularization)
 
     def init_model(self):
         super().init_model()
@@ -122,7 +124,7 @@ class PGModel(DistributionModel):
         )
 
         self.optimizer.step(
-            self.calculate_loss,
+            self.total_loss,
             loss_arguments,
             fn_reference=self.calculate_reference)
 
@@ -139,9 +141,20 @@ class PGModel(DistributionModel):
                 self.baseline.loss,
                 baseline_loss_arguments,
                 fn_reference=self.baseline.reference)
-            baseline_loss = self.baseline.loss(obs_batch, cumulative_rewards)
 
         self.num_updates += 1
+
+    def total_loss(self,
+                   obs_batch,
+                   action_batch,
+                   reward_batch,
+                   next_obs_batch,
+                   neg_done_mask,
+                   reference=None):
+        loss = self.calculate_loss(obs_batch, action_batch, reward_batch,
+                                   next_obs_batch, neg_done_mask, reference)
+        reg_loss = self.regularization_loss(obs_batch)
+        return loss + reg_loss
 
     def calculate_loss(self,
                        obs_batch,

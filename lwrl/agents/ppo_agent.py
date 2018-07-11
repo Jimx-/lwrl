@@ -22,6 +22,7 @@ class PPOAgent(BatchAgent):
                  baseline_mode=None,
                  baseline_spec=None,
                  baseline_optimizer=None,
+                 entropy_regularization=None,
                  gae_lambda=None,
                  optimization_steps=50,
                  likelihood_ratio_clipping=None):
@@ -30,6 +31,7 @@ class PPOAgent(BatchAgent):
         self.baseline_mode = baseline_mode
         self.baseline_spec = baseline_spec
         self.baseline_optimizer = baseline_optimizer
+        self.entropy_regularization = entropy_regularization
         self.gae_lambda = gae_lambda
         self.likelihood_ratio_clipping = likelihood_ratio_clipping
 
@@ -71,5 +73,6 @@ class PPOAgent(BatchAgent):
             baseline_mode=self.baseline_mode,
             baseline_spec=self.baseline_spec,
             baseline_optimizer=self.baseline_optimizer,
+            entropy_regularization=self.entropy_regularization,
             gae_lambda=self.gae_lambda,
             likelihood_ratio_clipping=self.likelihood_ratio_clipping)
