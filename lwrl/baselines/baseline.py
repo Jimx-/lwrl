@@ -9,6 +9,9 @@ class Baseline:
     def predict(self, obs_batch):
         raise NotImplementedError
 
-    def loss(self, obs_batch, reward):
+    def reference(self, obs_batch, reward):
+        return None
+
+    def loss(self, obs_batch, reward, reference=None):
         prediction = self.predict(obs_batch)
-        return (prediction - reward).pow(2).mean()
+        return F.mse_loss(prediction, reward)

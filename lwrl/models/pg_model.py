@@ -130,9 +130,16 @@ class PGModel(DistributionModel):
         if self.baseline_optimizer is not None:
             cumulative_rewards = self.calculate_cumulative_rewards(
                 reward_batch, neg_done_mask, self.discount_factor)
-            baseline_loss = self.baseline.loss(obs_batch, cumulative_rewards)
+            baseline_loss_arguments = dict(
+                obs_batch=obs_batch,
+                reward=cumulative_rewards,
+            )
 
-            self.baseline_optimizer.step(baseline_loss)
+            self.baseline_optimizer.step(
+                self.baseline.loss,
+                baseline_loss_arguments,
+                fn_reference=self.baseline.reference)
+            baseline_loss = self.baseline.loss(obs_batch, cumulative_rewards)
 
         self.num_updates += 1
 

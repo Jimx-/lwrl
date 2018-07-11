@@ -18,9 +18,15 @@
         "size": [3, 32]
     },
     "baseline_optimizer": {
-        "type": "Adam",
+        "type": "multistep",
         "args": {
-            "lr": 0.01
+            "optimizer": {
+                "type": "Adam",
+                "args": {
+                    "lr": 0.01
+                }
+            },
+            "num_steps": 5
         }
     },
 
